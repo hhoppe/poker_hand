@@ -60,7 +60,7 @@ def evaluate_hand_python(cards, ranks, freqs):
   c0, c1, c2, c3, c4 = cards[0], cards[1], cards[2], cards[3], cards[4]
   is_flush = get_suit(c0) == get_suit(c1) == get_suit(c2) == get_suit(c3) == get_suit(c4)
   r0, r1, r2, r3, r4 = ranks
-  is_straight = r1 == r0 + 1 and r2 == r0 + 2 and r3 == r0 + 3 and r4 - r0 in (4, 12)
+  is_straight = r1 - r0 == r2 - r1 == r3 - r2 == 1 and r4 - r3 in (1, 9)
 
   # Count rank frequencies.
   freqs[:] = 0
@@ -146,7 +146,6 @@ def run_cpu_numba_multiprocess(num_decks, seed):
   chunk_num_decks = math.ceil(num_decks / num_processes)
   base_seed = seed * 10_000_000
   chunks = [(chunk_num_decks, base_seed + i) for i in range(num_processes)]
-  # with multiprocessing.get_context('fork').Pool(num_processes) as pool:
   with multiprocessing.Pool(num_processes) as pool:
     results = pool.map(compute_chunk, chunks)
   return np.sum(results, axis=0) / (num_processes * chunk_num_decks * 10)
@@ -177,7 +176,9 @@ def compute_gpu(rng_states, num_decks_per_thread, num_threads, results):
       deck[i] = i
     # Apply Fisher-Yates shuffle to deck.
     for i in range(51, 0, -1):
+      # j = cuda.random.xoroshiro128p_next(rng_states, thread_index) % (i + 1)  # Undocumented.
       j = int(cuda.random.xoroshiro128p_uniform_float32(rng_states, thread_index) * (i + 1))
+
       deck[i], deck[j] = deck[j], deck[i]
 
     for hand_index in range(10):
@@ -191,7 +192,7 @@ def compute_gpu(rng_states, num_decks_per_thread, num_threads, results):
 
 
 # %%
-def run_gpu_cuda(num_decks, seed, num_decks_per_thread=10, threads_per_block=256):
+def run_gpu_cuda(num_decks, seed, num_decks_per_thread=10, threads_per_block=64):
   num_threads = num_decks // num_decks_per_thread
   blocks = math.ceil(num_threads / threads_per_block)
   d_rng_states = cuda.random.create_xoroshiro128p_states(num_threads, seed)
@@ -221,12 +222,10 @@ adjust_run_complexity = {
 
 
 # %%
-def perform_initial_jits(debug=False, base_num_decks=100_000):
+def perform_initial_jits(base_num_decks=100_000):
   for processor, func in methods.items():
     num_decks = int(base_num_decks * adjust_run_complexity[processor])
-    probs = func(num_decks, 1)
-    if debug:
-      print(probs[-4:])
+    _ = func(num_decks, 1)
 
 
 # %%
