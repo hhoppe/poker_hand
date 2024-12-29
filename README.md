@@ -8,5 +8,5 @@ We compare execution speeds using Python, `numba`, `numba` with multiprocessing,
 
 Open the [notebook](https://github.com/hhoppe/poker_hand/blob/main/poker_hand.ipynb) to see the results.
 
-Or [open the notebook in Colab](https://colab.research.google.com/github/hhoppe/poker_hand/blob/main/poker_hand.ipynb),
+Or, [open the notebook in Colab](https://colab.research.google.com/github/hhoppe/poker_hand/blob/main/poker_hand.ipynb),
 change the Runtime to have access to a GPU (e.g., "T4 GPU" (Tesla T4 GPU)), and then run the notebook.
