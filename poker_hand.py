@@ -27,6 +27,9 @@ import numpy as np
 
 
 # %%
+print(f'The number of CPU threads is {multiprocessing.cpu_count()}.')
+
+# %%
 cuda.detect()
 
 
@@ -98,9 +101,9 @@ evaluate_hand_numba = numba.njit(evaluate_hand_python)
 
 # %%
 def make_compute_cpu(evaluate_hand):
-  # Return a specialized compute function for the given evaluate_hand function.
+  # Return a specialized compute_cpu function for the given evaluate_hand function.
 
-  def compute(num_decks, seed):
+  def compute_cpu(num_decks, seed):
     np.random.seed(seed)
     deck = np.arange(52, dtype=np.uint8)
     ranks = np.empty(5, np.uint8)
@@ -114,7 +117,7 @@ def make_compute_cpu(evaluate_hand):
         tally[outcome] += 1
     return tally
 
-  return compute
+  return compute_cpu
 
 
 compute_cpu_python = make_compute_cpu(evaluate_hand_python)
@@ -128,17 +131,17 @@ def compute_chunk(args):
 
 
 # %%
-def run_cpu_python(num_decks, seed=1):
-  return compute_cpu_python(num_decks, seed=seed) / (num_decks * 10)
+def run_cpu_python(num_decks, seed):
+  return compute_cpu_python(num_decks, seed) / (num_decks * 10)
 
 
 # %%
-def run_cpu_numba(num_decks, seed=1):
-  return compute_cpu_numba(num_decks, seed=seed) / (num_decks * 10)
+def run_cpu_numba(num_decks, seed):
+  return compute_cpu_numba(num_decks, seed) / (num_decks * 10)
 
 
 # %%
-def run_cpu_numba_multiprocess(num_decks, seed=1):
+def run_cpu_numba_multiprocess(num_decks, seed):
   num_processes = multiprocessing.cpu_count()
   chunk_num_decks = math.ceil(num_decks / num_processes)
   base_seed = seed * 10_000_000
@@ -188,10 +191,10 @@ def compute_gpu(rng_states, num_decks_per_thread, num_threads, results):
 
 
 # %%
-def run_gpu_cuda(num_decks, seed=1, num_decks_per_thread=10, threads_per_block=256):
+def run_gpu_cuda(num_decks, seed, num_decks_per_thread=10, threads_per_block=256):
   num_threads = num_decks // num_decks_per_thread
   blocks = math.ceil(num_threads / threads_per_block)
-  d_rng_states = cuda.random.create_xoroshiro128p_states(num_threads, seed=seed)
+  d_rng_states = cuda.random.create_xoroshiro128p_states(num_threads, seed)
   d_results = cuda.to_device(np.zeros(10, np.int64))
   compute_gpu[blocks, threads_per_block](d_rng_states, num_decks_per_thread, num_threads, d_results)
   return d_results.copy_to_host() / (num_threads * num_decks_per_thread * 10)
@@ -221,7 +224,7 @@ adjust_run_complexity = {
 def perform_initial_jits(debug=False, base_num_decks=100_000):
   for processor, func in methods.items():
     num_decks = int(base_num_decks * adjust_run_complexity[processor])
-    probs = func(num_decks)
+    probs = func(num_decks, 1)
     if debug:
       print(probs[-4:])
 
@@ -241,7 +244,7 @@ def simulate_poker_hands(base_num_hands, seed=1):
     print(f'For {processor} simulating {num_hands:_} hands:')
 
     start_time = time.monotonic()
-    results = func(num_decks, seed=seed)
+    results = func(num_decks, seed)
     elapsed_time = time.monotonic() - start_time
 
     hands_per_s = int(num_hands / elapsed_time)
