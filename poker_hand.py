@@ -129,6 +129,7 @@ def make_compute_cpu(evaluate_hand):
   return compute_cpu
 
 
+# %%
 compute_cpu_python = make_compute_cpu(evaluate_hand_python)
 compute_cpu_numba = numba.njit(make_compute_cpu(evaluate_hand_numba))
 
@@ -171,23 +172,19 @@ def compute_gpu(rng_states, num_decks_per_thread, num_threads, results):
   if thread_index >= num_threads:
     return
 
-  # Local tally for this thread.
   local_tally = cuda.local.array(10, np.int32)
-  for i in range(10):
-    local_tally[i] = 0
-
   deck = cuda.local.array(52, np.uint8)
   ranks = cuda.local.array(5, np.uint8)
   freqs = cuda.local.array(13, np.uint8)
+  local_tally[:] = 0
+  for i in range(52):
+    deck[i] = i
 
   for _ in range(num_decks_per_thread):
-    for i in range(52):
-      deck[i] = i
     # Apply Fisher-Yates shuffle to deck.
     for i in range(51, 0, -1):
       # j = cuda.random.xoroshiro128p_next(rng_states, thread_index) % (i + 1)  # Undocumented.
       j = int(cuda.random.xoroshiro128p_uniform_float32(rng_states, thread_index) * (i + 1))
-
       deck[i], deck[j] = deck[j], deck[i]
 
     for hand_index in range(10):
@@ -232,8 +229,8 @@ adjust_run_complexity = {
 
 # %%
 def perform_initial_jits(base_num_decks=100_000):
-  for processor, func in methods.items():
-    num_decks = int(base_num_decks * adjust_run_complexity[processor])
+  for func_name, func in methods.items():
+    num_decks = int(base_num_decks * adjust_run_complexity[func_name])
     _ = func(num_decks, 1)
 
 
@@ -246,10 +243,10 @@ def simulate_poker_hands(base_num_hands, seed=1):
   num_hands_per_deck = 10
   base_num_decks = base_num_hands // num_hands_per_deck
 
-  for processor, func in methods.items():
-    num_decks = math.ceil(base_num_decks * adjust_run_complexity[processor])
+  for func_name, func in methods.items():
+    num_decks = math.ceil(base_num_decks * adjust_run_complexity[func_name])
     num_hands = num_decks * 10
-    print(f'For {processor} simulating {num_hands:_} hands:')
+    print(f'\nFor {func_name} simulating {num_hands:_} hands:')
 
     start_time = time.monotonic()
     results = func(num_decks, seed)
@@ -274,14 +271,12 @@ def simulate_poker_hands(base_num_hands, seed=1):
     assert sum(reference.values()) == comb(52, 5)
 
     print(' Probabilities:')
-    for (hand_name, reference_num_hands), prob in zip(reference.items(), results):
+    for (outcome_name, reference_num_hands), prob in zip(reference.items(), results):
       reference_prob = reference_num_hands / comb(52, 5)
       error = prob - reference_prob
-      s = f'  {hand_name:<16}: {prob * 100:8.5f}%'
+      s = f'  {outcome_name:<16}: {prob * 100:8.5f}%'
       s += f'  (vs. reference {reference_prob * 100:8.5f}%  error:{error * 100:8.5f}%)'
       print(s)
-
-    print()
 
 
 # %%
