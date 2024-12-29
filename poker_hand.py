@@ -15,6 +15,7 @@
 # ### Imports
 
 # %%
+import enum
 import math
 import multiprocessing
 import time
@@ -35,6 +36,14 @@ cuda.detect()
 
 # %% [markdown]
 # ### Hand evaluation
+
+
+# %%
+Outcome = enum.IntEnum(
+    'Outcome',
+    'ROYAL_FLUSH STRAIGHT_FLUSH FOUR_OF_A_KIND FULL_HOUSE FLUSH STRAIGHT THREE_OF_A_KIND TWO_PAIR ONE_PAIR HIGH_CARD',
+    start=0,
+)
 
 
 # %%
@@ -74,22 +83,22 @@ def evaluate_hand_python(cards, ranks, freqs):
   max_freq = max(freqs)
 
   if is_flush and is_straight:
-    return 0 if ranks[0] == 8 else 1  # Royal flush or straight flush.
+    return Outcome.ROYAL_FLUSH.value if ranks[0] == 8 else Outcome.STRAIGHT_FLUSH.value
   if max_freq == 4:
-    return 2  # Four of a kind.
+    return Outcome.FOUR_OF_A_KIND.value
   if max_freq == 3 and num_pairs > 0:
-    return 3  # Full house.
+    return Outcome.FULL_HOUSE.value
   if is_flush:
-    return 4  # Flush.
+    return Outcome.FLUSH.value
   if is_straight:
-    return 5  # Straight.
+    return Outcome.STRAIGHT.value
   if max_freq == 3:
-    return 6  # Three of a kind.
+    return Outcome.THREE_OF_A_KIND.value
   if max_freq == 2:
     if num_pairs == 2:
-      return 7  # Two pair.
-    return 8  # One pair.
-  return 9  # High card.
+      return Outcome.TWO_PAIR.value
+    return Outcome.ONE_PAIR.value
+  return Outcome.HIGH_CARD.value
 
 
 # %%
