@@ -31,7 +31,8 @@ import numpy as np
 print(f'The number of CPU threads is {multiprocessing.cpu_count()}.')
 
 # %%
-cuda.detect()
+if cuda.detect():
+  print(f'The number of GPU SMs is {cuda.get_current_device().MULTIPROCESSOR_COUNT}')
 
 
 # %% [markdown]
@@ -48,6 +49,7 @@ HAND_SIZE = 5
 # %%
 class Outcome(enum.IntEnum):
   """Poker hand rankings from best to worst."""
+
   ROYAL_FLUSH = 0
   STRAIGHT_FLUSH = 1
   FOUR_OF_A_KIND = 2
@@ -224,8 +226,13 @@ def compute_gpu(rng_states, num_decks_per_thread, results):
 
 
 # %%
-def simulate_hands_gpu_cuda(num_decks, seed, num_decks_per_thread=100, threads_per_block=64):
+def simulate_hands_gpu_cuda(num_decks, seed, threads_per_block=64):
+  device = cuda.get_current_device()
+  # Target enough threads for ~4 blocks per SM.
+  target_num_threads = 4 * device.MULTIPROCESSOR_COUNT * threads_per_block
+  num_decks_per_thread = max(1, num_decks // target_num_threads)
   num_threads = num_decks // num_decks_per_thread
+  # print(f'{num_decks_per_thread=} {num_threads=}')
   blocks = math.ceil(num_threads / threads_per_block)
   d_rng_states = cuda.random.create_xoroshiro128p_states(num_threads, seed)
   d_results = cuda.to_device(np.zeros(10, np.int64))
@@ -254,25 +261,16 @@ COMPLEXITY_ADJUSTMENT = {
 
 
 # %%
-def ensure_functions_are_jitted(base_num_decks=100_000):
-  for func_name, func in SIMULATE_FUNCTIONS.items():
-    num_decks = int(base_num_decks * COMPLEXITY_ADJUSTMENT[func_name])
-    _ = func(num_decks, 1)
-
-
-# %%
 def simulate_poker_hands(base_num_hands, seed=1):
-  ensure_functions_are_jitted()
   num_hands_per_deck = 10
   base_num_decks = base_num_hands // num_hands_per_deck
 
   for func_name, func in SIMULATE_FUNCTIONS.items():
-    if 'cuda' in func_name and not cuda.is_available():
-      continue
     num_decks = math.ceil(base_num_decks * COMPLEXITY_ADJUSTMENT[func_name])
     num_hands = num_decks * 10
     print(f'\nFor {func_name} simulating {num_hands:_} hands:')
 
+    _ = func(int(100_000 * COMPLEXITY_ADJUSTMENT[func_name]), 1)  # Ensure the function is jitted.
     start_time = time.monotonic()
     results = func(num_decks, seed)
     elapsed_time = time.monotonic() - start_time
