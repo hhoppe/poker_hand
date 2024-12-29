@@ -7,7 +7,9 @@
 #
 # We compare execution speeds using Python, `numba`, `numba` with multiprocessing, and `numba.cuda`.
 #
-# [**[Open this notebook in Colab]**](https://colab.research.google.com/github/hhoppe/poker_hand/blob/main/poker_hand.ipynb).
+# One way to run this notebook is to
+# [open it in Colab](https://colab.research.google.com/github/hhoppe/poker_hand/blob/main/poker_hand.ipynb),
+# change the Runtime to have access to a GPU (e.g., "T4 GPU" (Tesla T4 GPU)), and then "run all cells".
 
 # %% [markdown]
 # ### Imports
