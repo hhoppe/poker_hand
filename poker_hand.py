@@ -210,9 +210,9 @@ methods: Any = {
 
 # %%
 adjust_run_complexity = {
-    'cpu_python': 0.025,
+    'cpu_python': 0.01,
     'cpu_numba': 1.0,
-    'cpu_numba_multiprocess': 10.0,
+    'cpu_numba_multiprocess': 5.0,
     'gpu_cuda': 100.0,
 }
 
