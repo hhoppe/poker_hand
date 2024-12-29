@@ -35,19 +35,14 @@ cuda.detect()
 
 
 # %%
-@numba.njit
-def get_rank(card):
-  return card >> 2  # 13 ranks numbered 0-12 (23456789TJQKA).
-
-
-# %%
-@numba.njit
-def get_suit(card):
-  return card & 0b11  # 4 suits numbered 0-3.
-
-
-# %%
 def evaluate_hand_python(cards, ranks, freqs):
+
+  def get_rank(card):
+    return card >> 2  # 13 ranks numbered 0-12 (23456789TJQKA).
+
+  def get_suit(card):
+    return card & 0b11  # 4 suits numbered 0-3.
+
   # Sort cards by rank for easier pattern matching, using simple insertion sort.
   for i in range(5):
     ranks[i] = get_rank(cards[i])
@@ -95,38 +90,41 @@ def evaluate_hand_python(cards, ranks, freqs):
 
 
 # %%
-evaluate_hand = numba.njit(evaluate_hand_python)
+evaluate_hand_numba = numba.njit(evaluate_hand_python)
 
 # %% [markdown]
 # ### CPU simulation
 
 
 # %%
-def compute_cpu_python(num_decks, seed):
-  np.random.seed(seed)
-  deck = np.arange(52, dtype=np.uint8)
-  ranks = np.empty(5, np.uint8)
-  freqs = np.empty(13, np.int8)
-  tally = np.zeros(10, np.int64)
+def make_compute_cpu(evaluate_hand):
+  # Return a specialized compute function for the given evaluate_hand function.
 
-  for _ in range(num_decks):
-    np.random.shuffle(deck)
-    for hand_index in range(10):
-      hand = deck[hand_index * 5 : (hand_index + 1) * 5]
-      outcome = evaluate_hand(hand, ranks, freqs)
-      tally[outcome] += 1
+  def compute(num_decks, seed):
+    np.random.seed(seed)
+    deck = np.arange(52, dtype=np.uint8)
+    ranks = np.empty(5, np.uint8)
+    freqs = np.empty(13, np.int8)
+    tally = np.zeros(10, np.int64)
+    for _ in range(num_decks):
+      np.random.shuffle(deck)
+      for hand_index in range(10):
+        hand = deck[hand_index * 5 : (hand_index + 1) * 5]
+        outcome = evaluate_hand(hand, ranks, freqs)
+        tally[outcome] += 1
+    return tally
 
-  return tally
+  return compute
 
 
-# %%
-compute_cpu = numba.njit(compute_cpu_python)
+compute_cpu_python = make_compute_cpu(evaluate_hand_python)
+compute_cpu_numba = numba.njit(make_compute_cpu(evaluate_hand_numba))
 
 
 # %%
 def compute_chunk(args):
   num_decks, seed = args
-  return compute_cpu(num_decks, seed)
+  return compute_cpu_numba(num_decks, seed)
 
 
 # %%
@@ -136,7 +134,7 @@ def run_cpu_python(num_decks, seed=1):
 
 # %%
 def run_cpu_numba(num_decks, seed=1):
-  return compute_cpu(num_decks, seed=seed) / (num_decks * 10)
+  return compute_cpu_numba(num_decks, seed=seed) / (num_decks * 10)
 
 
 # %%
@@ -181,7 +179,7 @@ def compute_gpu(rng_states, num_decks_per_thread, num_threads, results):
 
     for hand_index in range(10):
       hand = deck[hand_index * 5 : (hand_index + 1) * 5]
-      outcome = evaluate_hand(hand, ranks, freqs)
+      outcome = evaluate_hand_numba(hand, ranks, freqs)
       local_tally[outcome] += 1
 
   # Accumulate local tallies in global results.
@@ -210,11 +208,20 @@ methods: Any = {
     'gpu_cuda': run_gpu_cuda,
 }
 
+# %%
+adjust_run_complexity = {
+    'cpu_python': 0.025,
+    'cpu_numba': 1.0,
+    'cpu_numba_multiprocess': 10.0,
+    'gpu_cuda': 100.0,
+}
+
 
 # %%
-def perform_initial_jits(debug=False, num_decks=100_000):
+def perform_initial_jits(debug=False, base_num_decks=100_000):
   for processor, func in methods.items():
-    probs = func(num_decks * (10 if processor == 'gpu_cuda' else 1))
+    num_decks = int(base_num_decks * adjust_run_complexity[processor])
+    probs = func(num_decks)
     if debug:
       print(probs[-4:])
 
@@ -229,8 +236,7 @@ def simulate_poker_hands(base_num_hands, seed=1):
   base_num_decks = base_num_hands // num_hands_per_deck
 
   for processor, func in methods.items():
-    complexity_factor = dict(cpu_python=0.25, cpu_numba=1, cpu_numba_multiprocess=10, gpu_cuda=100)
-    num_decks = math.ceil(base_num_decks * complexity_factor[processor])
+    num_decks = math.ceil(base_num_decks * adjust_run_complexity[processor])
     num_hands = num_decks * 10
     print(f'For {processor} simulating {num_hands:_} hands:')
 
