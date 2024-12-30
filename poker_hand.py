@@ -136,12 +136,6 @@ if cuda.is_available() and cuda.detect():
 
 
 # %%
-DECK_SIZE = 52
-NUM_RANKS = 13
-HAND_SIZE = 5
-
-
-# %%
 class Outcome(enum.IntEnum):
   """Poker hand rankings from best to worst."""
 
@@ -155,6 +149,14 @@ class Outcome(enum.IntEnum):
   TWO_PAIR = 7
   ONE_PAIR = 8
   HIGH_CARD = 9
+
+
+# %%
+DECK_SIZE = 52
+NUM_RANKS = 13
+HAND_SIZE = 5
+HANDS_PER_DECK = DECK_SIZE // HAND_SIZE
+NUM_OUTCOMES = len(Outcome)
 
 
 # %%
@@ -191,6 +193,7 @@ def evaluate_hand_python(cards, ranks, freqs):
   # is_flush = all(card == cards[0] for card in cards[1:])
   c0, c1, c2, c3, c4 = cards[0], cards[1], cards[2], cards[3], cards[4]
   is_flush = get_suit(c0) == get_suit(c1) == get_suit(c2) == get_suit(c3) == get_suit(c4)
+
   r0, r1, r2, r3, r4 = ranks
   is_straight = r1 - r0 == r2 - r1 == r3 - r2 == 1 and r4 - r3 in (1, 9)  # 9 for ace-low 'A2345'.
 
@@ -198,12 +201,13 @@ def evaluate_hand_python(cards, ranks, freqs):
   freqs[:] = 0
   for rank in ranks:
     freqs[rank] += 1
+  max_freq = max(freqs)
+
   # num_pairs = np.sum(freqs == 2)
   num_pairs = 0
   for i in range(NUM_RANKS):
     if freqs[i] == 2:
       num_pairs += 1
-  max_freq = max(freqs)
 
   if is_flush and is_straight:
     if ranks[0] == 8:
@@ -242,48 +246,38 @@ def make_compute_cpu(evaluate_hand):
     deck = np.arange(DECK_SIZE, dtype=np.uint8)
     ranks = np.empty(HAND_SIZE, np.uint8)
     freqs = np.empty(NUM_RANKS, np.int8)
-    tally = np.zeros(10, np.int64)
+    tally = np.zeros(NUM_OUTCOMES, np.int64)
     for _ in range(num_decks):
       np.random.shuffle(deck)
-      for hand_index in range(10):
+      for hand_index in range(HANDS_PER_DECK):
         hand = deck[hand_index * HAND_SIZE : (hand_index + 1) * HAND_SIZE]
         outcome = evaluate_hand(hand, ranks, freqs)
         tally[outcome] += 1
-    return tally
+    return tally / (num_decks * HANDS_PER_DECK)
 
   return compute_cpu
 
 
 # %%
-compute_cpu_python = make_compute_cpu(evaluate_hand_python)
-compute_cpu_numba = numba.njit(make_compute_cpu(evaluate_hand_numba))
+simulate_hands_cpu_python = make_compute_cpu(evaluate_hand_python)
+simulate_hands_cpu_numba = numba.njit(make_compute_cpu(evaluate_hand_numba))
 
 
 # %%
 def compute_chunk(args):
   num_decks, seed = args
-  return compute_cpu_numba(num_decks, seed)
-
-
-# %%
-def simulate_hands_cpu_python(num_decks, seed):
-  return compute_cpu_python(num_decks, seed) / (num_decks * 10)
-
-
-# %%
-def simulate_hands_cpu_numba(num_decks, seed):
-  return compute_cpu_numba(num_decks, seed) / (num_decks * 10)
+  return simulate_hands_cpu_numba(num_decks, seed)
 
 
 # %%
 def simulate_hands_cpu_numba_multiprocess(num_decks, seed):
   num_processes = multiprocessing.cpu_count()
   chunk_num_decks = math.ceil(num_decks / num_processes)
-  base_seed = seed * 10_000_000
+  base_seed = seed * 1_000_000
   chunks = [(chunk_num_decks, base_seed + i) for i in range(num_processes)]
   with multiprocessing.Pool(num_processes) as pool:
     results = pool.map(compute_chunk, chunks)
-  return np.sum(results, axis=0) / (num_processes * chunk_num_decks * 10)
+  return np.mean(results, axis=0)
 
 
 # %% [markdown]
@@ -293,14 +287,20 @@ def simulate_hands_cpu_numba_multiprocess(num_decks, seed):
 # %%
 @cuda.jit
 def compute_gpu(rng_states, num_decks_per_thread, results):
-  thread_index = cuda.grid(1)  # pylint: disable=no-value-for-parameter
+  # pylint: disable=too-many-function-args, no-value-for-parameter, comparison-with-callable
+  USE_SHARED_TALLY = True
+  USE_UINT64_RANDOM = True
+  thread_index = cuda.grid(1)
   if thread_index >= len(rng_states):
     return
 
-  local_tally = cuda.local.array(10, np.int32)
+  local_tally = cuda.local.array(NUM_OUTCOMES, np.int32)
   deck = cuda.local.array(DECK_SIZE, np.uint8)
   ranks = cuda.local.array(HAND_SIZE, np.uint8)
   freqs = cuda.local.array(NUM_RANKS, np.uint8)
+  if USE_SHARED_TALLY:
+    shared_tally = cuda.shared.array(NUM_OUTCOMES, np.int64)  # Per-block intermediate tally.
+
   local_tally[:] = 0
   for i in range(DECK_SIZE):
     deck[i] = i
@@ -308,18 +308,38 @@ def compute_gpu(rng_states, num_decks_per_thread, results):
   for _ in range(num_decks_per_thread):
     # Apply Fisher-Yates shuffle to current deck.
     for i in range(51, 0, -1):
-      # j = cuda.random.xoroshiro128p_next(rng_states, thread_index) % (i + 1)  # Undocumented.
-      j = int(cuda.random.xoroshiro128p_uniform_float32(rng_states, thread_index) * (i + 1))
+      if USE_UINT64_RANDOM:  # Faster and has low bias (~2.76e-18 for worst case ).
+        j = cuda.random.xoroshiro128p_next(rng_states, thread_index) % (i + 1)
+      else:  # Results in higher bias (~2.86e-6) due to reduced size (24 bits) of mantissa.
+        j = int(cuda.random.xoroshiro128p_uniform_float32(rng_states, thread_index) * (i + 1))
       deck[i], deck[j] = deck[j], deck[i]
 
-    for hand_index in range(10):
+    for hand_index in range(HANDS_PER_DECK):
       hand = deck[hand_index * HAND_SIZE : (hand_index + 1) * HAND_SIZE]
       outcome = evaluate_hand_numba(hand, ranks, freqs)
       local_tally[outcome] += 1
 
-  # Accumulate local tallies into global results.
-  for i in range(10):
-    cuda.atomic.add(results, i, local_tally[i])  # pylint: disable=too-many-function-args
+  if USE_SHARED_TALLY:
+    # First accumulate a per-block tally, then accumulate that tally into the global tally.
+    thread_in_block = cuda.threadIdx.x
+    if thread_in_block == 0:
+      for i in range(NUM_OUTCOMES):
+        shared_tally[i] = 0
+    cuda.syncthreads()
+
+    # Each thread adds its local results to shared memory.
+    for i in range(NUM_OUTCOMES):
+      cuda.atomic.add(shared_tally, i, local_tally[i])
+      cuda.syncthreads()
+
+    if thread_in_block == 0:
+      for i in range(NUM_OUTCOMES):
+        cuda.atomic.add(results, i, shared_tally[i])
+
+  else:
+    # Accumulate the per-thread tally into the global tally.
+    for i in range(NUM_OUTCOMES):
+      cuda.atomic.add(results, i, local_tally[i])
 
 
 # %%
@@ -332,9 +352,9 @@ def simulate_hands_gpu_cuda(num_decks, seed, threads_per_block=64):
   # print(f'{num_decks_per_thread=} {num_threads=}')
   blocks = math.ceil(num_threads / threads_per_block)
   d_rng_states = cuda.random.create_xoroshiro128p_states(num_threads, seed)
-  d_results = cuda.to_device(np.zeros(10, np.int64))
+  d_results = cuda.to_device(np.zeros(NUM_OUTCOMES, np.int64))
   compute_gpu[blocks, threads_per_block](d_rng_states, num_decks_per_thread, d_results)
-  return d_results.copy_to_host() / (num_threads * num_decks_per_thread * 10)
+  return d_results.copy_to_host() / (num_threads * num_decks_per_thread * HANDS_PER_DECK)
 
 
 # %% [markdown]
@@ -359,12 +379,11 @@ COMPLEXITY_ADJUSTMENT = {
 
 # %%
 def simulate_poker_hands(base_num_hands, seed=1):
-  num_hands_per_deck = 10
-  base_num_decks = base_num_hands // num_hands_per_deck
+  base_num_decks = base_num_hands // HANDS_PER_DECK
 
   for func_name, func in SIMULATE_FUNCTIONS.items():
     num_decks = math.ceil(base_num_decks * COMPLEXITY_ADJUSTMENT[func_name])
-    num_hands = num_decks * 10
+    num_hands = num_decks * HANDS_PER_DECK
     print(f'\nFor {func_name} simulating {num_hands:_} hands:')
 
     _ = func(int(100_000 * COMPLEXITY_ADJUSTMENT[func_name]), 1)  # Ensure the function is jitted.
