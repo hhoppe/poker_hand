@@ -289,7 +289,7 @@ def simulate_hands_cpu_numba_multiprocess(num_decks, seed):
 def compute_gpu(rng_states, num_decks_per_thread, results):
   # pylint: disable=too-many-function-args, no-value-for-parameter, comparison-with-callable
   USE_SHARED_TALLY = True
-  USE_UINT64_RANDOM = True
+  USE_UINT_RANDOM = True
   thread_index = cuda.grid(1)
   if thread_index >= len(rng_states):
     return
@@ -308,7 +308,7 @@ def compute_gpu(rng_states, num_decks_per_thread, results):
   for _ in range(num_decks_per_thread):
     # Apply Fisher-Yates shuffle to current deck.
     for i in range(51, 0, -1):
-      if USE_UINT64_RANDOM:  # Faster and has low bias (~2.76e-18 for worst case ).
+      if USE_UINT_RANDOM:  # Faster and has lower bias (~2.76e-18 for worst case ).
         j = cuda.random.xoroshiro128p_next(rng_states, thread_index) % (i + 1)
       else:  # Results in higher bias (~2.86e-6) due to reduced size (24 bits) of mantissa.
         j = int(cuda.random.xoroshiro128p_uniform_float32(rng_states, thread_index) * (i + 1))
@@ -384,15 +384,16 @@ def simulate_poker_hands(base_num_hands, seed=1):
   for func_name, func in SIMULATE_FUNCTIONS.items():
     num_decks = math.ceil(base_num_decks * COMPLEXITY_ADJUSTMENT[func_name])
     num_hands = num_decks * HANDS_PER_DECK
-    print(f'\nFor {func_name} simulating {num_hands:_} hands:')
+    print(f'\nFor {func_name} simulating {num_hands:,} hands:')
 
     _ = func(int(100_000 * COMPLEXITY_ADJUSTMENT[func_name]), 1)  # Ensure the function is jitted.
     start_time = time.monotonic()
     results = func(num_decks, seed)
     elapsed_time = time.monotonic() - start_time
 
-    hands_per_s = int(num_hands / elapsed_time)
-    print(f' Elapsed time is {elapsed_time:.3f} s, or {hands_per_s:_} hands/s.')
+    round_digits = lambda x, ndigits=3: round(x, ndigits - 1 - math.floor(math.log10(abs(x))))
+    hands_per_s = round_digits(int(num_hands / elapsed_time))
+    print(f' Elapsed time is {elapsed_time:.3f} s, or {hands_per_s:,} hands/s.')
 
     comb = math.comb
     REFERENCE = {  # https://en.wikipedia.org/wiki/Poker_probability
