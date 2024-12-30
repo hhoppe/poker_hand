@@ -1,18 +1,114 @@
 # %% [markdown]
 # # Poker hand simulation
 #
-# A simple testbed to experiment with Python acceleration using `numba` (CPU-jitted code) and `numba.cuda` (GPU CUDA-jitted code).
+# This notebook is a simple testbed to experiment with Python acceleration using `numba` (CPU-jitted code) and `numba.cuda` (GPU CUDA-jitted code).
 #
 # We estimate poker hand probabilities using Monte Carlo simulation and compare results with known reference values.
 #
 # We compare execution speeds using Python, `numba`, `numba` with multiprocessing, and `numba.cuda`.
 #
-# One way to run this notebook is to
-# [open it in Colab](https://colab.research.google.com/github/hhoppe/poker_hand/blob/main/poker_hand.ipynb),
-# change the Runtime to have access to a GPU (e.g., "T4 GPU" (Tesla T4 GPU)), and then "run all cells".
+# Websites on which to run this notebook include:
+#
+# - [Open in Google Colab](https://colab.research.google.com/github/hhoppe/poker_hand/blob/main/poker_hand.ipynb), click on Runtime -> Change runtime type -> T4 GPU, and then Runtime -> Run all.
+#
+# - [Open in kaggle.com](https://www.kaggle.com/notebooks/welcome?src=https://github.com/hhoppe/poker_hand/blob/main/poker_hand.ipynb), click on Session options -> Accelerator -> GPU T4 x2 or P100, then Run All.
+#
+# - [Open in mybinder.org](https://mybinder.org/v2/gh/hhoppe/poker_hand/main?urlpath=lab/tree/poker_hand.ipynb).  Unfortunately, no GPU is available.
+#
+# - [Open in deepnote.com](https://deepnote.com/launch?url=https%3A%2F%2Fgithub.com%2Fhhoppe%2Fpoker_hand%2Fblob%2Fmain%2Fpoker_hand.ipynb).  Unfortunately, no GPU is available.
+#
+# Here are results:
+
+# %% [markdown]
+# <table style="margin-left: 0">
+# <tr>
+#   <th>Platform</th>
+#   <th style="text-align: center">CPU<br>threads</th>
+#   <th style="text-align: center">GPU<br>type</th>
+#   <th style="text-align: center">CUDA<br>SMs</th>
+#   <th colspan="4">Simulation rate (hands/s)</th>
+# </tr>
+# <tr>
+#   <th></th>
+#   <th></th>
+#   <th></th>
+#   <th></th>
+#   <th>Python</th>
+#   <th>Numba</th>
+#   <th>Multiprocess</th>
+#   <th>CUDA</th>
+# </tr>
+# <tr>
+#   <td><b>My PC</b> WSL2</td>
+#   <td style="text-align: center">24</td>
+#   <td style="text-align: center">GeForce 3080 Ti</td>
+#   <td style="text-align: center">80</td>
+#   <td style="text-align: right">115,575</td>
+#   <td style="text-align: right">7,391,506</td>
+#   <td style="text-align: right">81,486,454</td>
+#   <td style="text-align: right">780,537,776</td>
+# </tr>
+# <tr>
+#   <td><a href="https://colab.research.google.com/github/hhoppe/poker_hand/blob/main/poker_hand.ipynb"><b>Colab</b> T4</a></td>
+#   <td style="text-align: center">2</td>
+#   <td style="text-align: center">Tesla T4</td>
+#   <td style="text-align: center">40</td>
+#   <td style="text-align: right">14,537</td>
+#   <td style="text-align: right">3,979,992</td>
+#   <td style="text-align: right">4,265,099</td>
+#   <td style="text-align: right">1,656,967,205</td>
+# </tr>
+# <tr>
+#   <td><a href="https://www.kaggle.com/notebooks/welcome?src=https://github.com/hhoppe/poker_hand/blob/main/poker_hand.ipynb"><b>Kaggle</b> T4</a></td>
+#   <td style="text-align: center">4</td>
+#   <td style="text-align: center">Tesla T4 x2</td>
+#   <td style="text-align: center">40</td>
+#   <td style="text-align: right">17,333</td>
+#   <td style="text-align: right">4,095,869</td>
+#   <td style="text-align: right">9,132,356</td>
+#   <td style="text-align: right">1,820,619,723</td>
+# </tr>
+# <tr>
+#   <td><b>Kaggle</b> P100</td>
+#   <td style="text-align: center">4</td>
+#   <td style="text-align: center">Tesla P100</td>
+#   <td style="text-align: center">56</td>
+#   <td style="text-align: right">18,007</td>
+#   <td style="text-align: right">4,068,247</td>
+#   <td style="text-align: right">9,895,509</td>
+#   <td style="text-align: right">1,115,351,475</td>
+# </tr>
+# <tr>
+#   <td><a href="https://mybinder.org/v2/gh/hhoppe/poker_hand/main?urlpath=lab/tree/poker_hand.ipynb"><b>mybinder</b></a></td>
+#   <td style="text-align: center">72</td>
+#   <td style="text-align: center">None</td>
+#   <td style="text-align: center">-</td>
+#   <td style="text-align: right">15,954</td>
+#   <td style="text-align: right">1,206,560</td>
+#   <td style="text-align: right">743,016</td>
+#   <td style="text-align: right">-</td>
+# </tr>
+# <tr>
+#   <td><a href="https://deepnote.com/launch?url=https%3A%2F%2Fgithub.com%2Fhhoppe%2Fpoker_hand%2Fblob%2Fmain%2Fpoker_hand.ipynb"><b>deepnote</b></a></td>
+#   <td style="text-align: center">8</td>
+#   <td style="text-align: center">None</td>
+#   <td style="text-align: center">-</td>
+#   <td style="text-align: right">14,245</td>
+#   <td style="text-align: right">3,953,857</td>
+#   <td style="text-align: right">2,842,231</td>
+#   <td style="text-align: right">-</td>
+# </tr>
+# </table>
+
+# %% [markdown]
+# It is puzzling that the CUDA rate is lower on my PC (given its good GPU).<br/>
+# The use of "Windows Subsystem for Linux" might be introducing some overhead.
 
 # %% [markdown]
 # ### Imports
+
+# %%
+# %pip install -q numba
 
 # %%
 import enum
@@ -31,7 +127,7 @@ import numpy as np
 print(f'The number of CPU threads is {multiprocessing.cpu_count()}.')
 
 # %%
-if cuda.detect():
+if cuda.is_available() and cuda.detect():
   print(f'The number of GPU SMs is {cuda.get_current_device().MULTIPROCESSOR_COUNT}')
 
 
@@ -42,7 +138,6 @@ if cuda.detect():
 # %%
 DECK_SIZE = 52
 NUM_RANKS = 13
-NUM_SUITS = 4
 HAND_SIZE = 5
 
 
@@ -76,10 +171,10 @@ def evaluate_hand_python(cards, ranks, freqs):
   """
 
   def get_rank(card: int) -> int:
-    return card >> 2  # in range(NUM_RANKS), ordered '23456789TJQKA'.
+    return card >> 2  # In range(NUM_RANKS), ordered '23456789TJQKA'.
 
   def get_suit(card: int) -> int:
-    return card & 0b11  # in range(NUM_SUITS).
+    return card & 0b11  # In range(4).
 
   # Sort cards by rank for easier pattern matching, using simple insertion sort.
   for i in range(HAND_SIZE):
@@ -111,7 +206,9 @@ def evaluate_hand_python(cards, ranks, freqs):
   max_freq = max(freqs)
 
   if is_flush and is_straight:
-    return Outcome.ROYAL_FLUSH.value if ranks[0] == 8 else Outcome.STRAIGHT_FLUSH.value
+    if ranks[0] == 8:
+      return Outcome.ROYAL_FLUSH.value
+    return Outcome.STRAIGHT_FLUSH.value
   if max_freq == 4:
     return Outcome.FOUR_OF_A_KIND.value
   if max_freq == 3 and num_pairs > 0:
