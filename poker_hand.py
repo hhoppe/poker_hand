@@ -43,49 +43,49 @@
 #   <td style="text-align: center">24</td>
 #   <td style="text-align: center">GeForce 3080 Ti</td>
 #   <td style="text-align: center">80</td>
-#   <td style="text-align: right">115,575</td>
-#   <td style="text-align: right">7,391,506</td>
-#   <td style="text-align: right">81,486,454</td>
-#   <td style="text-align: right">780,537,776</td>
+#   <td style="text-align: right">116,000</td>
+#   <td style="text-align: right">7,390,000</td>
+#   <td style="text-align: right">81,500,000</td>
+#   <td style="text-align: right">780,000,000</td>
 # </tr>
 # <tr>
 #   <td><a href="https://colab.research.google.com/github/hhoppe/poker_hand/blob/main/poker_hand.ipynb"><b>Colab</b> T4</a></td>
 #   <td style="text-align: center">2</td>
 #   <td style="text-align: center">Tesla T4</td>
 #   <td style="text-align: center">40</td>
-#   <td style="text-align: right">14,537</td>
-#   <td style="text-align: right">3,979,992</td>
-#   <td style="text-align: right">4,265,099</td>
-#   <td style="text-align: right">1,656,967,205</td>
+#   <td style="text-align: right">14,500</td>
+#   <td style="text-align: right">3,980,000</td>
+#   <td style="text-align: right">4,270,000</td>
+#   <td style="text-align: right">1,660,000,000</td>
 # </tr>
 # <tr>
 #   <td><a href="https://www.kaggle.com/notebooks/welcome?src=https://github.com/hhoppe/poker_hand/blob/main/poker_hand.ipynb"><b>Kaggle</b> T4</a></td>
 #   <td style="text-align: center">4</td>
 #   <td style="text-align: center">Tesla T4 x2</td>
 #   <td style="text-align: center">40</td>
-#   <td style="text-align: right">17,333</td>
-#   <td style="text-align: right">4,095,869</td>
-#   <td style="text-align: right">9,132,356</td>
-#   <td style="text-align: right">1,820,619,723</td>
+#   <td style="text-align: right">17,300</td>
+#   <td style="text-align: right">4,100,000</td>
+#   <td style="text-align: right">9,130,000</td>
+#   <td style="text-align: right">1,820,000,000</td>
 # </tr>
 # <tr>
 #   <td><b>Kaggle</b> P100</td>
 #   <td style="text-align: center">4</td>
 #   <td style="text-align: center">Tesla P100</td>
 #   <td style="text-align: center">56</td>
-#   <td style="text-align: right">18,007</td>
-#   <td style="text-align: right">4,068,247</td>
-#   <td style="text-align: right">9,895,509</td>
-#   <td style="text-align: right">1,115,351,475</td>
+#   <td style="text-align: right">18,000</td>
+#   <td style="text-align: right">4,070,000</td>
+#   <td style="text-align: right">9,900,000</td>
+#   <td style="text-align: right">1,120,000,000</td>
 # </tr>
 # <tr>
 #   <td><a href="https://mybinder.org/v2/gh/hhoppe/poker_hand/main?urlpath=lab/tree/poker_hand.ipynb"><b>mybinder</b></a></td>
 #   <td style="text-align: center">72</td>
 #   <td style="text-align: center">None</td>
 #   <td style="text-align: center">-</td>
-#   <td style="text-align: right">15,954</td>
-#   <td style="text-align: right">1,206,560</td>
-#   <td style="text-align: right">743,016</td>
+#   <td style="text-align: right">16,000</td>
+#   <td style="text-align: right">1,210,000</td>
+#   <td style="text-align: right">740,000</td>
 #   <td style="text-align: right">-</td>
 # </tr>
 # <tr>
@@ -93,9 +93,9 @@
 #   <td style="text-align: center">8</td>
 #   <td style="text-align: center">None</td>
 #   <td style="text-align: center">-</td>
-#   <td style="text-align: right">14,245</td>
-#   <td style="text-align: right">3,953,857</td>
-#   <td style="text-align: right">2,842,231</td>
+#   <td style="text-align: right">14,200</td>
+#   <td style="text-align: right">3,950,000</td>
+#   <td style="text-align: right">2,840,000</td>
 #   <td style="text-align: right">-</td>
 # </tr>
 # </table>
