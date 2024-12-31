@@ -39,6 +39,16 @@
 #   <th>CUDA</th>
 # </tr>
 # <tr>
+#   <td><b>My PC</b> Win10</td>
+#   <td style="text-align: center">24</td>
+#   <td style="text-align: center">GeForce 3080 Ti</td>
+#   <td style="text-align: center">80</td>
+#   <td style="text-align: right">24,600</td>
+#   <td style="text-align: right">10,000,000</td>
+#   <td style="text-align: right">-</td>
+#   <td style="text-align: right">840,000,000</td>
+# </tr>
+# <tr>
 #   <td><b>My PC</b> WSL2</td>
 #   <td style="text-align: center">24</td>
 #   <td style="text-align: center">GeForce 3080 Ti</td>
@@ -101,8 +111,7 @@
 # </table>
 
 # %% [markdown]
-# It is puzzling that the CUDA rate is lower on my PC (given its good GPU).<br/>
-# The use of "Windows Subsystem for Linux" might be introducing some overhead.
+# It is puzzling that the CUDA rate is lower on my PC than on the online servers.
 
 # %% [markdown]
 # ### Imports
@@ -275,7 +284,7 @@ def simulate_hands_cpu_numba_multiprocess(num_decks, seed):
   chunk_num_decks = math.ceil(num_decks / num_processes)
   base_seed = seed * 1_000_000
   chunks = [(chunk_num_decks, base_seed + i) for i in range(num_processes)]
-  with multiprocessing.Pool(num_processes) as pool:
+  with multiprocessing.get_context('fork').Pool(num_processes) as pool:
     results = pool.map(compute_chunk, chunks)
   return np.mean(results, axis=0)
 
@@ -364,9 +373,11 @@ def simulate_hands_gpu_cuda(num_decks, seed, threads_per_block=64):
 SIMULATE_FUNCTIONS: Any = {
     'cpu_python': simulate_hands_cpu_python,
     'cpu_numba': simulate_hands_cpu_numba,
-    'cpu_numba_multiprocess': simulate_hands_cpu_numba_multiprocess,
-    'gpu_cuda': simulate_hands_gpu_cuda,
 }
+if 'fork' in multiprocessing.get_all_start_methods():
+  SIMULATE_FUNCTIONS.update({'cpu_numba_multiprocess': simulate_hands_cpu_numba_multiprocess})
+if cuda.is_available():
+  SIMULATE_FUNCTIONS.update({'gpu_cuda': simulate_hands_gpu_cuda})
 
 # %%
 COMPLEXITY_ADJUSTMENT = {
