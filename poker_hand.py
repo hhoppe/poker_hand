@@ -59,6 +59,15 @@
 #   <td style="text-align: right">780,000,000</td>
 # </tr>
 # <tr>
+#   <td><b>Marcel PC</b> Win</td>
+#   <td style="text-align: center">24</td>
+#   <td style="text-align: center">Titan V</td>
+#   <td style="text-align: center">80</td>
+#   <td style="text-align: right">62,800</td>
+#   <td style="text-align: right">5,160,000</td>
+#   <td style="text-align: right">-</td>
+#   <td style="text-align: right">2,280,000,000</td>
+# </tr><tr>
 #   <td><a href="https://colab.research.google.com/github/hhoppe/poker_hand/blob/main/poker_hand.ipynb"><b>Colab</b> T4</a></td>
 #   <td style="text-align: center">2</td>
 #   <td style="text-align: center">Tesla T4</td>
@@ -117,7 +126,12 @@
 # ### Imports
 
 # %%
-# %pip install -q numba
+# !pip install -q numba
+
+# %%
+# import os
+# os.environ['NUMBA_ENABLE_CUDASIM'] = '1'
+# os.environ['NUMBA_CUDA_DEBUGINFO'] = '1'
 
 # %%
 import enum
@@ -273,6 +287,11 @@ simulate_hands_cpu_numba = numba.njit(make_compute_cpu(evaluate_hand_numba))
 
 
 # %%
+# # %timeit -n1 -r2 simulate_hands_cpu_python(10**4, 1)
+# # %timeit -n100 -r2 simulate_hands_cpu_numba(10**4, 1)
+
+
+# %%
 def compute_chunk(args):
   num_decks, seed = args
   return simulate_hands_cpu_numba(num_decks, seed)
@@ -317,8 +336,9 @@ def compute_gpu(rng_states, num_decks_per_thread, results):
   for _ in range(num_decks_per_thread):
     # Apply Fisher-Yates shuffle to current deck.
     for i in range(51, 0, -1):
+      # See https://github.com/numba/numba/blob/main/numba/cuda/random.py
       if USE_UINT_RANDOM:  # Faster and has lower bias (~2.76e-18 for worst case ).
-        j = cuda.random.xoroshiro128p_next(rng_states, thread_index) % (i + 1)
+        j = cuda.random.xoroshiro128p_next(rng_states, thread_index) % numba.uint32(i + 1)
       else:  # Results in higher bias (~2.86e-6) due to reduced size (24 bits) of mantissa.
         j = int(cuda.random.xoroshiro128p_uniform_float32(rng_states, thread_index) * (i + 1))
       deck[i], deck[j] = deck[j], deck[i]
@@ -366,6 +386,12 @@ def simulate_hands_gpu_cuda(num_decks, seed, threads_per_block=64):
   return d_results.copy_to_host() / (num_threads * num_decks_per_thread * HANDS_PER_DECK)
 
 
+# %%
+# simulate_poker_hands(10**7, 'gpu_cuda', simulate_hands_gpu_cuda)
+
+# %%
+# # %timeit -n1 -r10 simulate_hands_gpu_cuda(10**7, 1)
+
 # %% [markdown]
 # ### Results
 
@@ -389,49 +415,53 @@ COMPLEXITY_ADJUSTMENT = {
 
 
 # %%
-def simulate_poker_hands(base_num_hands, seed=1):
+def simulate_poker_hands(base_num_hands, func_name, func, seed=1):
   base_num_decks = base_num_hands // HANDS_PER_DECK
+  num_decks = math.ceil(base_num_decks * COMPLEXITY_ADJUSTMENT[func_name])
+  num_hands = num_decks * HANDS_PER_DECK
+  print(f'\nFor {func_name} simulating {num_hands:,} hands:')
 
-  for func_name, func in SIMULATE_FUNCTIONS.items():
-    num_decks = math.ceil(base_num_decks * COMPLEXITY_ADJUSTMENT[func_name])
-    num_hands = num_decks * HANDS_PER_DECK
-    print(f'\nFor {func_name} simulating {num_hands:,} hands:')
+  _ = func(int(100_000 * COMPLEXITY_ADJUSTMENT[func_name]), 1)  # Ensure the function is jitted.
+  start_time = time.perf_counter_ns()
+  results = func(num_decks, seed)
+  elapsed_time = (time.perf_counter_ns() - start_time) / 10**9
 
-    _ = func(int(100_000 * COMPLEXITY_ADJUSTMENT[func_name]), 1)  # Ensure the function is jitted.
-    start_time = time.monotonic()
-    results = func(num_decks, seed)
-    elapsed_time = time.monotonic() - start_time
+  round_digits = lambda x, ndigits=3: round(x, ndigits - 1 - math.floor(math.log10(abs(x))))
+  hands_per_s = round_digits(int(num_hands / elapsed_time))
+  print(f' Elapsed time is {elapsed_time:.3f} s, or {hands_per_s:,} hands/s.')
 
-    round_digits = lambda x, ndigits=3: round(x, ndigits - 1 - math.floor(math.log10(abs(x))))
-    hands_per_s = round_digits(int(num_hands / elapsed_time))
-    print(f' Elapsed time is {elapsed_time:.3f} s, or {hands_per_s:,} hands/s.')
+  comb = math.comb
+  REFERENCE = {  # https://en.wikipedia.org/wiki/Poker_probability
+      'Royal flush': comb(4, 1),
+      'Straight flush': comb(10, 1) * comb(4, 1) - comb(4, 1),
+      'Four of a kind': comb(13, 1) * comb(4, 4) * comb(12, 1) * comb(4, 1),
+      'Full house': comb(13, 1) * comb(4, 3) * comb(12, 1) * comb(4, 2),
+      'Flush': comb(13, 5) * comb(4, 1) - comb(10, 1) * comb(4, 1),
+      'Straight': comb(10, 1) * comb(4, 1) ** 5 - comb(10, 1) * comb(4, 1),
+      'Three of a kind': comb(13, 1) * comb(4, 3) * comb(12, 2) * comb(4, 1) ** 2,
+      'Two pair': comb(13, 2) * comb(4, 2) ** 2 * comb(11, 1) * comb(4, 1),
+      'One pair': comb(13, 1) * comb(4, 2) * comb(12, 3) * comb(4, 1) ** 3,
+      'High card': (comb(13, 5) - comb(10, 1)) * (comb(4, 1) ** 5 - comb(4, 1)),
+  }
+  assert sum(REFERENCE.values()) == comb(DECK_SIZE, HAND_SIZE)
 
-    comb = math.comb
-    REFERENCE = {  # https://en.wikipedia.org/wiki/Poker_probability
-        'Royal flush': comb(4, 1),
-        'Straight flush': comb(10, 1) * comb(4, 1) - comb(4, 1),
-        'Four of a kind': comb(13, 1) * comb(4, 4) * comb(12, 1) * comb(4, 1),
-        'Full house': comb(13, 1) * comb(4, 3) * comb(12, 1) * comb(4, 2),
-        'Flush': comb(13, 5) * comb(4, 1) - comb(10, 1) * comb(4, 1),
-        'Straight': comb(10, 1) * comb(4, 1) ** 5 - comb(10, 1) * comb(4, 1),
-        'Three of a kind': comb(13, 1) * comb(4, 3) * comb(12, 2) * comb(4, 1) ** 2,
-        'Two pair': comb(13, 2) * comb(4, 2) ** 2 * comb(11, 1) * comb(4, 1),
-        'One pair': comb(13, 1) * comb(4, 2) * comb(12, 3) * comb(4, 1) ** 3,
-        'High card': (comb(13, 5) - comb(10, 1)) * (comb(4, 1) ** 5 - comb(4, 1)),
-    }
-    assert sum(REFERENCE.values()) == comb(DECK_SIZE, HAND_SIZE)
-
-    print(' Probabilities:')
-    for (outcome_name, reference_num_hands), prob in zip(REFERENCE.items(), results):
-      reference_prob = reference_num_hands / comb(DECK_SIZE, HAND_SIZE)
-      error = prob - reference_prob
-      s = f'  {outcome_name:<16}: {prob * 100:8.5f}%'
-      s += f'  (vs. reference {reference_prob * 100:8.5f}%  error:{error * 100:8.5f}%)'
-      print(s)
+  print(' Probabilities:')
+  for (outcome_name, reference_num_hands), prob in zip(REFERENCE.items(), results):
+    reference_prob = reference_num_hands / comb(DECK_SIZE, HAND_SIZE)
+    error = prob - reference_prob
+    s = f'  {outcome_name:<16}: {prob * 100:8.5f}%'
+    s += f'  (vs. reference {reference_prob * 100:8.5f}%  error:{error * 100:8.5f}%)'
+    print(s)
 
 
 # %%
-simulate_poker_hands(base_num_hands=10**7)
+def compare_simulations(base_num_hands, seed=1):
+  for func_name, func in SIMULATE_FUNCTIONS.items():
+    simulate_poker_hands(base_num_hands, func_name, func, seed)
+
+
+# %%
+compare_simulations(base_num_hands=10**7)
 
 # %% [markdown]
 # ### End
