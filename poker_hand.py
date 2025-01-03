@@ -137,6 +137,7 @@
 import enum
 import math
 import multiprocessing
+import pathlib
 import time
 from typing import Any
 
@@ -314,7 +315,7 @@ def simulate_hands_cpu_numba_multiprocess(num_decks, seed):
 
 # %%
 @cuda.jit
-def compute_gpu(rng_states, num_decks_per_thread, results):
+def compute_gpu(rng_states, num_decks_per_thread, global_tally):
   # pylint: disable=too-many-function-args, no-value-for-parameter, comparison-with-callable
   USE_SHARED_TALLY = True
   USE_UINT_RANDOM = True
@@ -322,14 +323,14 @@ def compute_gpu(rng_states, num_decks_per_thread, results):
   if thread_index >= len(rng_states):
     return
 
-  local_tally = cuda.local.array(NUM_OUTCOMES, np.int32)
+  thread_tally = cuda.local.array(NUM_OUTCOMES, np.int32)
   deck = cuda.local.array(DECK_SIZE, np.uint8)
   ranks = cuda.local.array(HAND_SIZE, np.uint8)
   freqs = cuda.local.array(NUM_RANKS, np.uint8)
   if USE_SHARED_TALLY:
     shared_tally = cuda.shared.array(NUM_OUTCOMES, np.int64)  # Per-block intermediate tally.
 
-  local_tally[:] = 0
+  thread_tally[:] = 0
   for i in range(DECK_SIZE):
     deck[i] = i
 
@@ -346,7 +347,7 @@ def compute_gpu(rng_states, num_decks_per_thread, results):
     for hand_index in range(HANDS_PER_DECK):
       hand = deck[hand_index * HAND_SIZE : (hand_index + 1) * HAND_SIZE]
       outcome = evaluate_hand_numba(hand, ranks, freqs)
-      local_tally[outcome] += 1
+      thread_tally[outcome] += 1
 
   if USE_SHARED_TALLY:
     # First accumulate a per-block tally, then accumulate that tally into the global tally.
@@ -358,17 +359,17 @@ def compute_gpu(rng_states, num_decks_per_thread, results):
 
     # Each thread adds its local results to shared memory.
     for i in range(NUM_OUTCOMES):
-      cuda.atomic.add(shared_tally, i, local_tally[i])
+      cuda.atomic.add(shared_tally, i, thread_tally[i])
       cuda.syncthreads()
 
     if thread_in_block == 0:
       for i in range(NUM_OUTCOMES):
-        cuda.atomic.add(results, i, shared_tally[i])
+        cuda.atomic.add(global_tally, i, shared_tally[i])
 
   else:
     # Accumulate the per-thread tally into the global tally.
     for i in range(NUM_OUTCOMES):
-      cuda.atomic.add(results, i, local_tally[i])
+      cuda.atomic.add(global_tally, i, thread_tally[i])
 
 
 # %%
@@ -381,16 +382,29 @@ def simulate_hands_gpu_cuda(num_decks, seed, threads_per_block=64):
   # print(f'{num_decks_per_thread=} {num_threads=}')
   blocks = math.ceil(num_threads / threads_per_block)
   d_rng_states = cuda.random.create_xoroshiro128p_states(num_threads, seed)
-  d_results = cuda.to_device(np.zeros(NUM_OUTCOMES, np.int64))
-  compute_gpu[blocks, threads_per_block](d_rng_states, num_decks_per_thread, d_results)
-  return d_results.copy_to_host() / (num_threads * num_decks_per_thread * HANDS_PER_DECK)
+  d_global_tally = cuda.to_device(np.zeros(NUM_OUTCOMES, np.int64))
+  compute_gpu[blocks, threads_per_block](d_rng_states, num_decks_per_thread, d_global_tally)
+  return d_global_tally.copy_to_host() / (num_threads * num_decks_per_thread * HANDS_PER_DECK)
 
+
+# %%
+# %timeit -n1 -r10 simulate_hands_gpu_cuda(10**7, 1)  # ~133 ms.
 
 # %%
 # simulate_poker_hands(10**7, 'gpu_cuda', simulate_hands_gpu_cuda)
 
 # %%
-# # %timeit -n1 -r10 simulate_hands_gpu_cuda(10**7, 1)
+def write_cuda_assembly_code():
+  # See also compute_gpu.nopython_signatures
+  signature = (cuda.random.xoroshiro128p_type[:], numba.int64, numba.int64[:])
+  cc = cuda.get_current_device().compute_capability
+  ptx, _ = cuda.compile_ptx(compute_gpu, signature, device=True, cc=cc)
+  pathlib.Path('compute_gpu.ptx').write_text(ptx)
+
+
+# %%
+if cuda.is_available():
+  write_cuda_assembly_code()
 
 # %% [markdown]
 # ### Results
