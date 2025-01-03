@@ -393,13 +393,13 @@ def simulate_hands_gpu_cuda(num_decks, seed, threads_per_block=64):
 # %%
 # simulate_poker_hands(10**7, 'gpu_cuda', simulate_hands_gpu_cuda)
 
+
 # %%
 def write_cuda_assembly_code():
   # See also compute_gpu.nopython_signatures
   signature = (cuda.random.xoroshiro128p_type[:], numba.int64, numba.int64[:])
-  cc = cuda.get_current_device().compute_capability
-  ptx, _ = cuda.compile_ptx(compute_gpu, signature, device=True, cc=cc)
-  pathlib.Path('compute_gpu.ptx').write_text(ptx)
+  ptx, _ = cuda.compile_ptx_for_current_device(compute_gpu, signature, device=True, abi='c')
+  pathlib.Path('compute_gpu.ptx').write_text(ptx, encoding='utf-8')
 
 
 # %%
