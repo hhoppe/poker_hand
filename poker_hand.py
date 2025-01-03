@@ -396,15 +396,33 @@ def simulate_hands_gpu_cuda(num_decks, seed, threads_per_block=64):
 
 # %%
 def write_cuda_assembly_code():
-  # See also compute_gpu.nopython_signatures
-  signature = (cuda.random.xoroshiro128p_type[:], numba.int64, numba.int64[:])
-  ptx, _ = cuda.compile_ptx_for_current_device(compute_gpu, signature, device=True, abi='c')
+  if 0:
+    signature = (cuda.random.xoroshiro128p_type[:], numba.int64, numba.int64[:])
+    ptx, _ = cuda.compile_ptx_for_current_device(compute_gpu, signature, device=True, abi='c')
+  else:
+    (ptx,) = compute_gpu.inspect_asm().values()
   pathlib.Path('compute_gpu.ptx').write_text(ptx, encoding='utf-8')
+
+
+# %%
+def report_kernel_properties():
+  PROPERTIES = 'const_mem_size local_mem_per_thread max_threads_per_block regs_per_thread shared_mem_per_block'.split()
+  for property_name in PROPERTIES:
+    (value,) = getattr(compute_gpu, 'get_' + property_name)().values()
+    print(f'{property_name} = {value}')
 
 
 # %%
 if cuda.is_available():
   write_cuda_assembly_code()
+  report_kernel_properties()
+
+# %%
+# const_mem_size = 0
+# local_mem_per_thread = 112
+# max_threads_per_block = 1024
+# regs_per_thread = 37
+# shared_mem_per_block = 80
 
 # %% [markdown]
 # ### Results
