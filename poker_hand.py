@@ -146,7 +146,20 @@ import numba
 from numba import cuda
 import numba.cuda.random
 import numpy as np
+import random32
 
+
+# %%
+USE_RANDOM32 = True
+randomx = random32 if USE_RANDOM32 else cuda.random
+if USE_RANDOM32:
+  random_create_states = random32.create_xoshiro128p_states
+  random_next_uniform_uint = random32.xoshiro128p_next
+  random_next_uniform_float32 = random32.xoshiro128p_uniform_float32
+else:
+  random_create_states = cuda.random.create_xoroshiro128p_states
+  random_next_uniform_uint = cuda.random.xoroshiro128p_next
+  random_next_uniform_float32 = cuda.random.xoroshiro128p_uniform_float32
 
 # %%
 print(f'The number of CPU threads is {multiprocessing.cpu_count()}.')
@@ -381,9 +394,9 @@ def old_compute_gpu(rng_states, num_decks_per_thread, global_tally):
     for i in range(51, 0, -1):
       # See https://github.com/numba/numba/blob/main/numba/cuda/random.py
       if USE_UINT_RANDOM:  # Faster and has lower bias (~2.76e-18 for worst case ).
-        j = cuda.random.xoroshiro128p_next(rng_states, thread_index) % numba.uint32(i + 1)
+        j = random_next_uniform_uint(rng_states, thread_index) % numba.uint32(i + 1)
       else:  # Results in higher bias (~2.86e-6) due to reduced size (24 bits) of mantissa.
-        j = int(cuda.random.xoroshiro128p_uniform_float32(rng_states, thread_index) * (i + 1))
+        j = int(random_next_uniform_float32(rng_states, thread_index) * (i + 1))
       deck[i], deck[j] = deck[j], deck[i]
 
     for hand_index in range(HANDS_PER_DECK):
@@ -440,10 +453,10 @@ def compute_gpu(rng_states, num_decks_per_thread, global_tally):
     for i in range(51, 0, -1):
       # See https://github.com/numba/numba/blob/main/numba/cuda/random.py
       if USE_UINT_RANDOM:  # Faster and has lower bias (~2.76e-18 for worst case ).
-        random_uint64 = cuda.random.xoroshiro128p_next(rng_states, thread_index)
+        random_uint64 = random_next_uniform_uint(rng_states, thread_index)
         j = numba.uint32(random_uint64) % numba.uint32(i + 1)
       else:  # Results in higher bias (~2.86e-6) due to reduced size (24 bits) of mantissa.
-        j = int(cuda.random.xoroshiro128p_uniform_float32(rng_states, thread_index) * (i + 1))
+        j = int(random_next_uniform_float32(rng_states, thread_index) * (i + 1))
       deck[i], deck[j] = deck[j], deck[i]
 
     for hand_index in range(HANDS_PER_DECK):
@@ -477,7 +490,7 @@ def simulate_hands_gpu_cuda(num_decks, rng):
   # print(f'{num_decks_per_thread=} {num_threads=}')
   blocks = math.ceil(num_threads / THREADS_PER_BLOCK)
   seed = rng.integers(2**64, dtype=np.uint64)
-  d_rng_states = cuda.random.create_xoroshiro128p_states(num_threads, seed)
+  d_rng_states = random_create_states(num_threads, seed)
   d_global_tally = cuda.to_device(np.zeros(NUM_OUTCOMES, np.int64))
   compute_gpu[blocks, THREADS_PER_BLOCK](d_rng_states, num_decks_per_thread, d_global_tally)
   return d_global_tally.copy_to_host() / (num_threads * num_decks_per_thread * HANDS_PER_DECK)
