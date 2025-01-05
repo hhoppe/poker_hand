@@ -370,7 +370,7 @@ def simulate_hands_cpu_numba_multiprocess(num_decks, rng):
 
 
 # %%
-THREADS_PER_BLOCK = 64
+THREADS_PER_BLOCK = 256
 
 
 # %%
@@ -461,7 +461,7 @@ assert np.allclose(
 )
 
 # %%
-# %timeit -n1 -r5 simulate_hands_gpu_cuda(10**7, np.random.default_rng(1))  # ~300 ms.
+# %timeit -n1 -r5 simulate_hands_gpu_cuda(10**7, np.random.default_rng(1))  # ~220 ms.
 
 # %%
 # simulate_poker_hands(10**8, 'gpu_cuda', simulate_hands_gpu_cuda)
@@ -551,7 +551,7 @@ compare_simulations(base_num_hands=10**7)
 # %%
 # 116k, 7.4m, 82m, 780m
 # 123k, 16m, 156m, 1400m
-# 135k, 33m, 350m, 1500m
+# 135k, 33m, 350m, 2200-3400m
 
 # %% [markdown]
 # ### End
