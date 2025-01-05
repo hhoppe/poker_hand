@@ -151,7 +151,6 @@ import random32
 
 # %%
 USE_RANDOM32 = True
-randomx = random32 if USE_RANDOM32 else cuda.random
 if USE_RANDOM32:
   random_create_states = random32.create_xoshiro128p_states
   random_next_uniform_uint = random32.xoshiro128p_next
@@ -371,78 +370,38 @@ def simulate_hands_cpu_numba_multiprocess(num_decks, rng):
 
 
 # %%
-@cuda.jit(fastmath=True)  # Using cuda.local.array.
-def old_compute_gpu(rng_states, num_decks_per_thread, global_tally):
-  # pylint: disable=too-many-function-args, no-value-for-parameter, comparison-with-callable
-  USE_UINT_RANDOM = True
-  thread_index = cuda.grid(1)
-  if thread_index >= len(rng_states):
-    return
-
-  thread_tally = cuda.local.array(NUM_OUTCOMES, np.int32)
-  deck = cuda.local.array(DECK_SIZE, np.uint8)
-  ranks = cuda.local.array(HAND_SIZE, np.uint8)
-  freqs = cuda.local.array(NUM_RANKS, np.uint8)
-  shared_tally = cuda.shared.array(NUM_OUTCOMES, np.int64)  # Per-block intermediate tally.
-
-  thread_tally[:] = 0
-  for i in range(DECK_SIZE):
-    deck[i] = i
-
-  for _ in range(num_decks_per_thread):
-    # Apply Fisher-Yates shuffle to current deck.
-    for i in range(51, 0, -1):
-      # See https://github.com/numba/numba/blob/main/numba/cuda/random.py
-      if USE_UINT_RANDOM:  # Faster and has lower bias (~2.76e-18 for worst case ).
-        j = random_next_uniform_uint(rng_states, thread_index) % numba.uint32(i + 1)
-      else:  # Results in higher bias (~2.86e-6) due to reduced size (24 bits) of mantissa.
-        j = int(random_next_uniform_float32(rng_states, thread_index) * (i + 1))
-      deck[i], deck[j] = deck[j], deck[i]
-
-    for hand_index in range(HANDS_PER_DECK):
-      hand = deck[hand_index : hand_index + 5]
-      outcome = evaluate_hand_numba(hand, ranks, freqs)
-      thread_tally[outcome] += 1
-
-  # First accumulate a per-block tally, then accumulate that tally into the global tally.
-  thread_id = cuda.threadIdx.x
-  if thread_id == 0:
-    for i in range(NUM_OUTCOMES):
-      shared_tally[i] = 0
-  cuda.syncthreads()
-
-  # Each thread adds its local results to shared memory.
-  for i in range(NUM_OUTCOMES):
-    cuda.atomic.add(shared_tally, i, thread_tally[i])
-    cuda.syncthreads()
-
-  if thread_id == 0:
-    for i in range(NUM_OUTCOMES):
-      cuda.atomic.add(global_tally, i, shared_tally[i])
-
-
-# %%
 THREADS_PER_BLOCK = 64
 
 
 # %%
-@cuda.jit(fastmath=True)  # Using cuda.shared.array.
+@cuda.jit(fastmath=True)  # Using either local memory or cuda.shared.array.
 def compute_gpu(rng_states, num_decks_per_thread, global_tally):
   # pylint: disable=too-many-function-args, no-value-for-parameter, comparison-with-callable
   # pylint: disable=possibly-used-before-assignment
-  USE_UINT_RANDOM = True
+  USE_SHARED_MEMORY = True  # Shared memory is faster.
+  USE_UINT_RANDOM = True  # Using uint remainder is faster than float trucation.
   thread_index = cuda.grid(1)
   if thread_index >= len(rng_states):
     return
-  thread_id = cuda.threadIdx.x
-  block_tally = cuda.shared.array((THREADS_PER_BLOCK, NUM_OUTCOMES), np.int32)
-  block_deck = cuda.shared.array((THREADS_PER_BLOCK, DECK_SIZE), np.uint8)
-  block_ranks = cuda.shared.array((THREADS_PER_BLOCK, HAND_SIZE), np.uint8)
-  block_freqs = cuda.shared.array((THREADS_PER_BLOCK, NUM_RANKS), np.uint8)
-  tally = block_tally[thread_id]
-  deck = block_deck[thread_id]
-  ranks = block_ranks[thread_id]
-  freqs = block_freqs[thread_id]
+
+  thread_id = cuda.threadIdx.x  # Index within block.
+  if USE_SHARED_MEMORY:
+    block_tally = cuda.shared.array((THREADS_PER_BLOCK, NUM_OUTCOMES), np.int32)
+    block_deck = cuda.shared.array((THREADS_PER_BLOCK, DECK_SIZE), np.uint8)
+    block_ranks = cuda.shared.array((THREADS_PER_BLOCK, HAND_SIZE), np.uint8)
+    block_freqs = cuda.shared.array((THREADS_PER_BLOCK, NUM_RANKS), np.uint8)
+    tally = block_tally[thread_id]
+    deck = block_deck[thread_id]
+    ranks = block_ranks[thread_id]
+    freqs = block_freqs[thread_id]
+    # Note: transposed structure results in longer code and ~1.3x slower execution:
+    # block_tally = cuda.shared.array((NUM_OUTCOMES, THREADS_PER_BLOCK), np.int32)
+    # tally = block_tally[:, thread_id]
+  else:
+    tally = cuda.local.array(NUM_OUTCOMES, np.int32)
+    deck = cuda.local.array(DECK_SIZE, np.uint8)
+    ranks = cuda.local.array(HAND_SIZE, np.uint8)
+    freqs = cuda.local.array(NUM_RANKS, np.uint8)
 
   tally[:] = 0
   for i in range(numba.uint8(DECK_SIZE)):  # Casting as uint8 nicely unrolls the loop.
@@ -453,8 +412,8 @@ def compute_gpu(rng_states, num_decks_per_thread, global_tally):
     for i in range(51, 0, -1):
       # See https://github.com/numba/numba/blob/main/numba/cuda/random.py
       if USE_UINT_RANDOM:  # Faster and has lower bias (~2.76e-18 for worst case ).
-        random_uint64 = random_next_uniform_uint(rng_states, thread_index)
-        j = numba.uint32(random_uint64) % numba.uint32(i + 1)
+        random_uint32 = random_next_uniform_uint(rng_states, thread_index)
+        j = random_uint32 % numba.uint32(i + 1)
       else:  # Results in higher bias (~2.86e-6) due to reduced size (24 bits) of mantissa.
         j = int(random_next_uniform_float32(rng_states, thread_index) * (i + 1))
       deck[i], deck[j] = deck[j], deck[i]
@@ -531,19 +490,6 @@ if cuda.is_available():
   write_cuda_assembly_code()
   report_kernel_properties()
 
-# %%
-# const_mem_size = 0
-# local_mem_per_thread = 112
-# max_threads_per_block = 1024
-# regs_per_thread = 37
-# shared_mem_per_block = 80
-
-# const_mem_size = 0
-# local_mem_per_thread = 0
-# max_threads_per_block = 1024
-# regs_per_thread = 40
-# shared_mem_per_block = 7120
-
 # %% [markdown]
 # ### Results
 
@@ -605,7 +551,7 @@ compare_simulations(base_num_hands=10**7)
 # %%
 # 116k, 7.4m, 82m, 780m
 # 123k, 16m, 156m, 1400m
-# 137k, 32m, 340m, 2000m
+# 135k, 33m, 350m, 1500m
 
 # %% [markdown]
 # ### End

@@ -4,7 +4,6 @@
 # 2018 by David Blackman and Sebastiano Vigna (vigna@acm.org)
 # "xoshiro128+ 1.0, our best and fastest 32-bit generator for 32-bit floating-point numbers".
 
-
 import math
 
 from numba import (config, cuda, float32, uint32, int32, from_dtype, jit)
