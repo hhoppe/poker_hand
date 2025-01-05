@@ -185,14 +185,14 @@ class Outcome(enum.IntEnum):
   STRAIGHT_FLUSH = 1, 'Straight flush', comb(10, 1) * comb(4, 1) - comb(4, 1)
   FOUR_OF_A_KIND = 2, 'Four of a kind', comb(13, 1) * comb(4, 4) * comb(12, 1) * comb(4, 1)
   FULL_HOUSE = 3, 'Full house', comb(13, 1) * comb(4, 3) * comb(12, 1) * comb(4, 2)
-  FLUSH = 4, 'Flush', comb(13, 5) * comb(4, 1) - comb(10, 1) * comb(4, 1),
+  FLUSH = 4, 'Flush', comb(13, 5) * comb(4, 1) - comb(10, 1) * comb(4, 1)
   STRAIGHT = 5, 'Straight', comb(10, 1) * comb(4, 1) ** 5 - comb(10, 1) * comb(4, 1)
   THREE_OF_A_KIND = 6, 'Three of a kind', comb(13, 1) * comb(4, 3) * comb(12, 2) * comb(4, 1) ** 2
   TWO_PAIR = 7, 'Two pair', comb(13, 2) * comb(4, 2) ** 2 * comb(11, 1) * comb(4, 1)
   ONE_PAIR = 8, 'One pair', comb(13, 1) * comb(4, 2) * comb(12, 3) * comb(4, 1) ** 3
   HIGH_CARD = 9, 'High card', (comb(13, 5) - comb(10, 1)) * (comb(4, 1) ** 5 - comb(4, 1))
 
-  def __new__(cls, value, string_name, reference_count):
+  def __new__(cls, value: int, string_name: str, reference_count: int) -> Any:
     obj = int.__new__(cls, value)
     obj._value_ = value
     obj.string_name = string_name
