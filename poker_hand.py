@@ -129,11 +129,6 @@
 # !pip install -q numba
 
 # %%
-# import os
-# os.environ['NUMBA_ENABLE_CUDASIM'] = '1'
-# os.environ['NUMBA_CUDA_DEBUGINFO'] = '1'
-
-# %%
 import enum
 import math
 from math import comb
@@ -173,50 +168,41 @@ if cuda.is_available() and cuda.detect():
 
 
 # %%
+DECK_SIZE = 52
+NUM_RANKS = 13
+HAND_SIZE = 5
+HANDS_PER_DECK = DECK_SIZE - HAND_SIZE + 1  # We consider all overlapping hands in a shuffled deck.
+
+
+# %%
 class Outcome(enum.IntEnum):
   """Poker hand rankings from best to worst."""
 
   string_name: str
+  reference_count: int  # https://en.wikipedia.org/wiki/Poker_probability
 
-  ROYAL_FLUSH = 0, 'Royal flush'
-  STRAIGHT_FLUSH = 1, 'Straight flush'
-  FOUR_OF_A_KIND = 2, 'Four of a kind'
-  FULL_HOUSE = 3, 'Full house'
-  FLUSH = 4, 'Flush'
-  STRAIGHT = 5, 'Straight'
-  THREE_OF_A_KIND = 6, 'Three of a kind'
-  TWO_PAIR = 7, 'Two pair'
-  ONE_PAIR = 8, 'One pair'
-  HIGH_CARD = 9, 'High card'
+  ROYAL_FLUSH = 0, 'Royal flush', comb(4, 1)
+  STRAIGHT_FLUSH = 1, 'Straight flush', comb(10, 1) * comb(4, 1) - comb(4, 1)
+  FOUR_OF_A_KIND = 2, 'Four of a kind', comb(13, 1) * comb(4, 4) * comb(12, 1) * comb(4, 1)
+  FULL_HOUSE = 3, 'Full house', comb(13, 1) * comb(4, 3) * comb(12, 1) * comb(4, 2)
+  FLUSH = 4, 'Flush', comb(13, 5) * comb(4, 1) - comb(10, 1) * comb(4, 1),
+  STRAIGHT = 5, 'Straight', comb(10, 1) * comb(4, 1) ** 5 - comb(10, 1) * comb(4, 1)
+  THREE_OF_A_KIND = 6, 'Three of a kind', comb(13, 1) * comb(4, 3) * comb(12, 2) * comb(4, 1) ** 2
+  TWO_PAIR = 7, 'Two pair', comb(13, 2) * comb(4, 2) ** 2 * comb(11, 1) * comb(4, 1)
+  ONE_PAIR = 8, 'One pair', comb(13, 1) * comb(4, 2) * comb(12, 3) * comb(4, 1) ** 3
+  HIGH_CARD = 9, 'High card', (comb(13, 5) - comb(10, 1)) * (comb(4, 1) ** 5 - comb(4, 1))
 
-  def __new__(cls, value, string_name):
+  def __new__(cls, value, string_name, reference_count):
     obj = int.__new__(cls, value)
     obj._value_ = value
     obj.string_name = string_name
+    obj.reference_count = reference_count
     return obj
 
 
 # %%
-DECK_SIZE = 52
-NUM_RANKS = 13
-HAND_SIZE = 5
-HANDS_PER_DECK = DECK_SIZE - HAND_SIZE + 1
 NUM_OUTCOMES = len(Outcome)
-
-# %%
-REFERENCE_COUNT_OF_OUTCOME = {  # https://en.wikipedia.org/wiki/Poker_probability
-    Outcome.ROYAL_FLUSH: comb(4, 1),
-    Outcome.STRAIGHT_FLUSH: comb(10, 1) * comb(4, 1) - comb(4, 1),
-    Outcome.FOUR_OF_A_KIND: comb(13, 1) * comb(4, 4) * comb(12, 1) * comb(4, 1),
-    Outcome.FULL_HOUSE: comb(13, 1) * comb(4, 3) * comb(12, 1) * comb(4, 2),
-    Outcome.FLUSH: comb(13, 5) * comb(4, 1) - comb(10, 1) * comb(4, 1),
-    Outcome.STRAIGHT: comb(10, 1) * comb(4, 1) ** 5 - comb(10, 1) * comb(4, 1),
-    Outcome.THREE_OF_A_KIND: comb(13, 1) * comb(4, 3) * comb(12, 2) * comb(4, 1) ** 2,
-    Outcome.TWO_PAIR: comb(13, 2) * comb(4, 2) ** 2 * comb(11, 1) * comb(4, 1),
-    Outcome.ONE_PAIR: comb(13, 1) * comb(4, 2) * comb(12, 3) * comb(4, 1) ** 3,
-    Outcome.HIGH_CARD: (comb(13, 5) - comb(10, 1)) * (comb(4, 1) ** 5 - comb(4, 1)),
-}
-EXPECTED_PROB = np.array(list(REFERENCE_COUNT_OF_OUTCOME.values())) / comb(DECK_SIZE, HAND_SIZE)
+EXPECTED_PROB = [outcome.reference_count / comb(DECK_SIZE, HAND_SIZE) for outcome in Outcome]
 assert np.allclose(np.sum(EXPECTED_PROB), 1.0)
 
 
@@ -394,7 +380,7 @@ def compute_gpu(rng_states, num_decks_per_thread, global_tally):
     deck = block_deck[thread_id]
     ranks = block_ranks[thread_id]
     freqs = block_freqs[thread_id]
-    # Note: transposed structure results in longer code and ~1.3x slower execution:
+    # Note: transposed structure results in longer code and ~1.3x slower execution, e.g.:
     # block_tally = cuda.shared.array((NUM_OUTCOMES, THREADS_PER_BLOCK), np.int32)
     # tally = block_tally[:, thread_id]
   else:
@@ -531,10 +517,10 @@ def simulate_poker_hands(base_num_hands, func_name, func, seed=1):
   print(f' Elapsed time is {elapsed_time:.3f} s, or {hands_per_s:,} hands/s.')
 
   print(' Probabilities:')
-  for (outcome, reference_count), prob in zip(REFERENCE_COUNT_OF_OUTCOME.items(), results):
-    reference_prob = reference_count / comb(DECK_SIZE, HAND_SIZE)
-    error = prob - reference_prob
-    s = f'  {outcome.string_name:<16}: {prob * 100:8.5f}%'
+  for outcome, result_prob in zip(Outcome, results):
+    reference_prob = outcome.reference_count / comb(DECK_SIZE, HAND_SIZE)
+    error = result_prob - reference_prob
+    s = f'  {outcome.string_name:<16}: {result_prob * 100:8.5f}%'
     s += f'  (vs. reference {reference_prob * 100:8.5f}%  error:{error * 100:8.5f}%)'
     print(s)
 
@@ -549,8 +535,6 @@ def compare_simulations(base_num_hands, seed=1):
 compare_simulations(base_num_hands=10**7)
 
 # %%
-# 116k, 7.4m, 82m, 780m
-# 123k, 16m, 156m, 1400m
 # 135k, 33m, 350m, 2200-3400m
 
 # %% [markdown]
