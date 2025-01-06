@@ -1,5 +1,5 @@
-/.ipynb_checkpoints
+.ipynb_checkpoints/
 __pycache__/
-/.mypy_cache
+.mypy_cache/
 
-/compute_gpu.ptx
+*.ptx
