@@ -370,6 +370,9 @@ simulate_hands_array_cpu_numba = numba.njit(make_compute_cpu(outcome_of_hand_arr
 
 
 # %%
+# print(next(iter(simulate_hands_array_cpu_numba.inspect_asm().values())))
+
+# %%
 assert np.allclose(simulate_hands_array_cpu_numba(10**5, RNG), EXPECTED_PROB, atol=0.001)
 
 
@@ -546,6 +549,23 @@ TABLE_STRAIGHTS_RANK_MASK = create_table_straights_rank_mask()
 
 
 # %%
+# Move TABLE_MASK_OF_CARD into shared memory??
+# Try using THREADS_PER_BLOCK + 1 on block_tally??
+# Try using np.int32 on block_deck??
+
+
+# %%
+@numba.jit
+def determine_straight(rank_count_mask):
+  m = rank_count_mask
+  t = TABLE_STRAIGHTS_RANK_MASK
+  assert len(t) == 10
+  result = (m == t[0]) | (m == t[1]) | (m == t[2]) | (m == t[3]) | (m == t[4])
+  result |= (m == t[5]) | (m == t[6]) | (m == t[7]) | (m == t[8]) | (m == t[9])
+  return result
+
+
+# %%
 @numba.jit
 def outcome_of_hand_bitmask(bitmask_sum):
   """Evaluate 5-card poker hand and return outcome ranking, using sum of card bitmasks."""
@@ -554,20 +574,14 @@ def outcome_of_hand_bitmask(bitmask_sum):
   rank_count_mask = numba.uint64(bitmask_sum & (2 ** (CARD_COUNT_BITS * NUM_RANKS) - 1))
 
   is_flush = cuda.popc(numba.uint32(suit_count_mask & (suit_count_mask >> 2) & SUITS_ONE)) != 0
-
-  # is_straight = rank_count_mask in TABLE_STRAIGHTS_RANK_MASK
-  is_straight = False
-  for straight_mask in TABLE_STRAIGHTS_RANK_MASK:  # Automatic cuda.const.array_like().
-    if rank_count_mask == straight_mask:
-      is_straight = True
-
+  is_straight = determine_straight(rank_count_mask)
   is_four = (rank_count_mask & RANKS_FOUR) != 0
   is_three = ((rank_count_mask + RANKS_ONE) & RANKS_FOUR) != 0
   mask_two_or_more = rank_count_mask & RANKS_TWO
   num_two_or_more = numba.uint32(cuda.popc(mask_two_or_more))  # Count number of set bits.
 
   if is_flush and is_straight:
-    if (rank_count_mask & ROYAL_STRAIGHT_RANK_MASK) != 0:
+    if rank_count_mask == ROYAL_STRAIGHT_RANK_MASK:
       return Outcome.ROYAL_FLUSH.value
     return Outcome.STRAIGHT_FLUSH.value
   if is_four:
@@ -605,10 +619,14 @@ def gpu_bitmask(rng_states, num_decks_per_thread, global_tally):
   for i in range(numba.uint8(DECK_SIZE)):  # Casting as uint8 nicely unrolls the loop.
     deck[i] = i
 
-  for _ in range(num_decks_per_thread):
+  rng = rng_states[thread_index]
+  s0, s1, s2, s3 = rng['s0'], rng['s1'], rng['s2'], rng['s3']
+
+  for _ in range(np.int32(num_decks_per_thread)):
     # Apply Fisher-Yates shuffle to current deck.
-    for i in range(51, 0, -1):
-      random_uint32 = random_next_uniform_uint(rng_states, thread_index)
+    for i in range(numba.int32(51), numba.int32(0), numba.int32(-1)):
+      random_uint32, s0, s1, s2, s3 = random32.xoshiro128p_next_raw(s0, s1, s2, s3)
+      s0, s1, s2, s3 = numba.uint32(s0), numba.uint32(s1), numba.uint32(s2), numba.uint32(s3)
       j = random_uint32 % numba.uint32(i + 1)
       deck[i], deck[j] = deck[j], deck[i]
 
@@ -616,10 +634,10 @@ def gpu_bitmask(rng_states, num_decks_per_thread, global_tally):
     mask0, mask1, mask2, mask3 = MASK[deck[0]], MASK[deck[1]], MASK[deck[2]], MASK[deck[3]]
     bitmask_sum = mask0 + mask1 + mask2 + mask3
 
-    for hand_index in range(HANDS_PER_DECK):
+    for hand_index in range(np.int32(HANDS_PER_DECK)):
       mask4 = MASK[deck[hand_index + 4]]
       bitmask_sum += mask4
-      outcome = outcome_of_hand_bitmask(bitmask_sum)
+      outcome = numba.int32(outcome_of_hand_bitmask(bitmask_sum))
       tally[outcome] += 1
       bitmask_sum -= mask0
       mask0, mask1, mask2, mask3 = mask1, mask2, mask3, mask4
@@ -655,6 +673,9 @@ def simulate_hands_mask_gpu_cuda(num_decks, rng):
   gpu_bitmask[blocks, THREADS_PER_BLOCK](d_rng_states, num_decks_per_thread, d_global_tally)
   return d_global_tally.copy_to_host() / (num_threads * num_decks_per_thread * HANDS_PER_DECK)
 
+
+# %%
+# simulate_poker_hands(10**7, 'mask_gpu_cuda', simulate_hands_mask_gpu_cuda)
 
 # %%
 if cuda.is_available():
@@ -698,9 +719,8 @@ COMPLEXITY_ADJUSTMENT = {
 
 
 # %%
-def simulate_poker_hands(base_num_hands, func_name, func):
-  base_num_decks = math.ceil(base_num_hands / HANDS_PER_DECK)
-  num_decks = math.ceil(base_num_decks * COMPLEXITY_ADJUSTMENT[func_name])
+def simulate_poker_hands(desired_num_hands, func_name, func):
+  num_decks = math.ceil(desired_num_hands / HANDS_PER_DECK)
   num_hands = num_decks * HANDS_PER_DECK
   print(f'\nFor {func_name} simulating {num_hands:,} hands:')
 
@@ -727,7 +747,8 @@ def simulate_poker_hands(base_num_hands, func_name, func):
 # %%
 def compare_simulations(base_num_hands):
   for func_name, func in SIMULATE_FUNCTIONS.items():
-    simulate_poker_hands(base_num_hands, func_name, func)
+    desired_num_hands = math.ceil(base_num_hands * COMPLEXITY_ADJUSTMENT[func_name])
+    simulate_poker_hands(desired_num_hands, func_name, func)
 
 
 # %%
@@ -735,6 +756,25 @@ compare_simulations(base_num_hands=10**7)
 
 # %%
 # 135k, 33m, 350m, 2200-3400m, 6000m-7200m
+
+# %%
+if 0:
+  simulate_poker_hands(10**12, 'mask_gpu_cuda', simulate_hands_mask_gpu_cuda)
+
+# %%
+# For mask_gpu_cuda simulating 1,000,000,000,032 hands:
+#  Elapsed time is 94.600 s, or 10,600,000,000 hands/s.
+#  Probabilities:
+#   Royal flush     :  0.00015%  (vs. reference  0.00015%  error: 0.00000%)
+#   Straight flush  :  0.00138%  (vs. reference  0.00139%  error:-0.00000%)
+#   Four of a kind  :  0.02401%  (vs. reference  0.02401%  error: 0.00000%)
+#   Full house      :  0.14406%  (vs. reference  0.14406%  error: 0.00001%)
+#   Flush           :  0.19654%  (vs. reference  0.19654%  error:-0.00000%)
+#   Straight        :  0.39245%  (vs. reference  0.39246%  error:-0.00001%)
+#   Three of a kind :  2.11288%  (vs. reference  2.11285%  error: 0.00003%)
+#   Two pair        :  4.75395%  (vs. reference  4.75390%  error: 0.00005%)
+#   One pair        : 42.25697%  (vs. reference 42.25690%  error: 0.00007%)
+#   High card       : 50.11760%  (vs. reference 50.11774%  error:-0.00014%)
 
 # %% [markdown]
 # ## End

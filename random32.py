@@ -90,6 +90,30 @@ def xoshiro128p_next(states, index):
 
 
 @jit(forceobj=_forceobj, looplift=_looplift, nopython=_nopython)
+def xoshiro128p_next_raw(s0, s1, s2, s3):
+  """Return the next random uint32 and updated state values.
+
+  Args:
+    s0, s1, s2, s3: Current state values in registers.
+
+  Returns:
+    Tuple of (random_value, new_s0, new_s1, new_s2, new_s3).
+  """
+  result = uint32(s0 + s3)
+  t = uint32(s1 << 9)
+
+  s2 ^= s0
+  s3 ^= s1
+  s1 ^= s2
+  s0 ^= s3
+
+  s2 ^= t
+  s3 = rotl(s3, 11)
+
+  return result, s0, s1, s2, s3
+
+
+@jit(forceobj=_forceobj, looplift=_looplift, nopython=_nopython)
 def xoshiro128p_jump(states, index):
   """Advance the RNG in states[index] by 2^64 steps.
 

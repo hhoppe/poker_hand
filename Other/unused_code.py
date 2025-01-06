@@ -1,5 +1,5 @@
 # %%
-USE_UINT_RANDOM = True  # Using uint remainder is faster than float trucation.
+USE_UINT_RANDOM = True  # Using uint remainder is faster than float truncation.
 
 if USE_UINT_RANDOM:  # Faster and has lower bias (~2.76e-18 for worst case ).
   random_uint32 = random_next_uniform_uint(rng_states, thread_index)
