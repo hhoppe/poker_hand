@@ -129,7 +129,7 @@
 # !pip install -q numba
 
 # %%
-# !if [ ! -f random32.py ]; then wget https://github.com/hhoppe/poker_hand/blob/main/random32.py; fi
+# !if [ ! -f random32.py ]; then wget https://github.com/hhoppe/poker_hand/raw/main/random32.py; fi
 
 # %%
 import enum
