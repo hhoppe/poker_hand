@@ -11,7 +11,7 @@
 #
 # - [Open in Google Colab](https://colab.research.google.com/github/hhoppe/poker_hand/blob/main/poker_hand.ipynb), click on Runtime -> Change runtime type -> T4 GPU, and then Runtime -> Run all.
 #
-# - [Open in kaggle.com](https://www.kaggle.com/notebooks/welcome?src=https://github.com/hhoppe/poker_hand/blob/main/poker_hand.ipynb), click on Session options -> Accelerator -> GPU T4 x2 or P100, then Run All.
+# - [Open in kaggle.com](https://www.kaggle.com/notebooks/welcome?src=https://github.com/hhoppe/poker_hand/blob/main/poker_hand.ipynb), login, Session options -> Accelerator -> GPU T4 x2 or P100, Session options -> Internet -> On, then Run All.
 #
 # - [Open in mybinder.org](https://mybinder.org/v2/gh/hhoppe/poker_hand/main?urlpath=lab/tree/poker_hand.ipynb).  Unfortunately, no GPU is available.
 #
@@ -22,100 +22,112 @@
 # %% [markdown]
 # <table style="margin-left: 0">
 # <tr>
+#   <th colspan="4"></th>
+#   <th colspan="5" style="text-align: center">Simulation rates (hands/s)</th>
+# </tr>
+# <tr>
+#   <th colspan="4">Compute capabilities</th>
+#   <th colspan="4" style="text-align: center; background-color: #EBF5FF">Array-based</th>
+#   <th colspan="1" style="text-align: center; background-color: #F0FDF4">Mask-based</th>
+# </tr>
+# <tr>
 #   <th>Platform</th>
 #   <th style="text-align: center">CPU<br>threads</th>
 #   <th style="text-align: center">GPU<br>type</th>
 #   <th style="text-align: center">CUDA<br>SMs</th>
-#   <th colspan="4">Simulation rate (hands/s)</th>
-# </tr>
-# <tr>
-#   <th></th>
-#   <th></th>
-#   <th></th>
-#   <th></th>
-#   <th>Python</th>
-#   <th>Numba</th>
-#   <th>Multiprocess</th>
-#   <th>CUDA</th>
+#   <th style="background-color: #EBF5FF">Python</th>
+#   <th style="background-color: #EBF5FF">Numba</th>
+#   <th style="background-color: #EBF5FF">Multiprocess</th>
+#   <th style="background-color: #EBF5FF">CUDA</th>
+#   <th style="background-color: #F0FDF4">CUDA</th>
 # </tr>
 # <tr>
 #   <td><b>My PC</b> Win10</td>
 #   <td style="text-align: center">24</td>
 #   <td style="text-align: center">GeForce 3080 Ti</td>
 #   <td style="text-align: center">80</td>
-#   <td style="text-align: right">24,600</td>
-#   <td style="text-align: right">10,000,000</td>
-#   <td style="text-align: right">-</td>
-#   <td style="text-align: right">840,000,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">21,800</td>
+#   <td style="text-align: right; background-color: #EBF5FF">28,200,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">-</td>
+#   <td style="text-align: right; background-color: #EBF5FF">2,700,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">8,800,000,000</td>
 # </tr>
 # <tr>
 #   <td><b>My PC</b> WSL2</td>
 #   <td style="text-align: center">24</td>
 #   <td style="text-align: center">GeForce 3080 Ti</td>
 #   <td style="text-align: center">80</td>
-#   <td style="text-align: right">116,000</td>
-#   <td style="text-align: right">7,390,000</td>
-#   <td style="text-align: right">81,500,000</td>
-#   <td style="text-align: right">780,000,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">135,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">33,000,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">350,000,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">2,800,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">6,400,000,000</td>
 # </tr>
 # <tr>
 #   <td><b>Marcel PC</b> Win</td>
 #   <td style="text-align: center">24</td>
 #   <td style="text-align: center">Titan V</td>
 #   <td style="text-align: center">80</td>
-#   <td style="text-align: right">62,800</td>
-#   <td style="text-align: right">5,160,000</td>
-#   <td style="text-align: right">-</td>
-#   <td style="text-align: right">2,280,000,000</td>
-# </tr><tr>
+#   <td style="text-align: right; background-color: #EBF5FF"><s>62,800</s></td>
+#   <td style="text-align: right; background-color: #EBF5FF"><s>5,160,000</s></td>
+#   <td style="text-align: right; background-color: #EBF5FF">-</td>
+#   <td style="text-align: right; background-color: #EBF5FF"><s>2,280,000,000</s></td>
+#   <td style="text-align: right; background-color: #F0FDF4">-</td>
+# </tr>
+# <tr>
 #   <td><a href="https://colab.research.google.com/github/hhoppe/poker_hand/blob/main/poker_hand.ipynb"><b>Colab</b> T4</a></td>
 #   <td style="text-align: center">2</td>
 #   <td style="text-align: center">Tesla T4</td>
 #   <td style="text-align: center">40</td>
-#   <td style="text-align: right">14,500</td>
-#   <td style="text-align: right">3,980,000</td>
-#   <td style="text-align: right">4,270,000</td>
-#   <td style="text-align: right">1,660,000,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">17,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">11,600,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">16,400,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">3,670,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">9,230,000,000</td>
 # </tr>
 # <tr>
 #   <td><a href="https://www.kaggle.com/notebooks/welcome?src=https://github.com/hhoppe/poker_hand/blob/main/poker_hand.ipynb"><b>Kaggle</b> T4</a></td>
 #   <td style="text-align: center">4</td>
 #   <td style="text-align: center">Tesla T4 x2</td>
 #   <td style="text-align: center">40</td>
-#   <td style="text-align: right">17,300</td>
-#   <td style="text-align: right">4,100,000</td>
-#   <td style="text-align: right">9,130,000</td>
-#   <td style="text-align: right">1,820,000,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">17,300</td>
+#   <td style="text-align: right; background-color: #EBF5FF">14,800,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">31,800,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">3,560,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">9,040,000,000</td>
 # </tr>
 # <tr>
 #   <td><b>Kaggle</b> P100</td>
 #   <td style="text-align: center">4</td>
 #   <td style="text-align: center">Tesla P100</td>
 #   <td style="text-align: center">56</td>
-#   <td style="text-align: right">18,000</td>
-#   <td style="text-align: right">4,070,000</td>
-#   <td style="text-align: right">9,900,000</td>
-#   <td style="text-align: right">1,120,000,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">17,100</td>
+#   <td style="text-align: right; background-color: #EBF5FF">14,500,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">31,300,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">3,620,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">6,730,000,000</td>
 # </tr>
 # <tr>
 #   <td><a href="https://mybinder.org/v2/gh/hhoppe/poker_hand/main?urlpath=lab/tree/poker_hand.ipynb"><b>mybinder</b></a></td>
 #   <td style="text-align: center">72</td>
 #   <td style="text-align: center">None</td>
 #   <td style="text-align: center">-</td>
-#   <td style="text-align: right">16,000</td>
-#   <td style="text-align: right">1,210,000</td>
-#   <td style="text-align: right">740,000</td>
-#   <td style="text-align: right">-</td>
+#   <td style="text-align: right; background-color: #EBF5FF">18,200</td>
+#   <td style="text-align: right; background-color: #EBF5FF">7,050,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">3,220,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">-</td>
+#   <td style="text-align: right; background-color: #F0FDF4">-</td>
 # </tr>
 # <tr>
 #   <td><a href="https://deepnote.com/launch?url=https%3A%2F%2Fgithub.com%2Fhhoppe%2Fpoker_hand%2Fblob%2Fmain%2Fpoker_hand.ipynb"><b>deepnote</b></a></td>
 #   <td style="text-align: center">8</td>
 #   <td style="text-align: center">None</td>
 #   <td style="text-align: center">-</td>
-#   <td style="text-align: right">14,200</td>
-#   <td style="text-align: right">3,950,000</td>
-#   <td style="text-align: right">2,840,000</td>
-#   <td style="text-align: right">-</td>
+#   <td style="text-align: right; background-color: #EBF5FF">18,700</td>
+#   <td style="text-align: right; background-color: #EBF5FF">22,400,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">12,600,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">-</td>
+#   <td style="text-align: right; background-color: #F0FDF4">-</td>
 # </tr>
 # </table>
 
@@ -470,10 +482,13 @@ def simulate_hands_array_gpu_cuda(num_decks, rng):
 
 
 # %%
-assert np.allclose(simulate_hands_array_gpu_cuda(10**7, RNG), EXPECTED_PROB, atol=0.0001)
+if cuda.is_available():
+  assert np.allclose(simulate_hands_array_gpu_cuda(10**7, RNG), EXPECTED_PROB, atol=0.0001)
 
 # %%
-# %timeit -n1 -r5 simulate_hands_array_gpu_cuda(10**7, RNG)  # ~220 ms.
+if cuda.is_available():
+  print('Timing:')
+  # %timeit -n1 -r5 simulate_hands_array_gpu_cuda(10**7, RNG)  # ~220 ms.
 
 # %%
 if cuda.is_available():
@@ -496,10 +511,10 @@ ROYAL_STRAIGHT_RANK_MASK = 0b_001_001_001_001_001_000_000_000_000_000_000_000_00
 SUITS_ONE = 0b_001_001_001_001
 
 # %%
-assert RANKS_ONE == int(sum((2**CARD_COUNT_BITS) ** np.arange(NUM_RANKS)))
-assert SUITS_ONE == int(sum((2**CARD_COUNT_BITS) ** np.arange(NUM_SUITS)))
+assert RANKS_ONE == int(sum((2**CARD_COUNT_BITS) ** np.arange(NUM_RANKS, dtype=np.uint64)))
+assert SUITS_ONE == int(sum((2**CARD_COUNT_BITS) ** np.arange(NUM_SUITS, dtype=np.uint64)))
 assert ROYAL_STRAIGHT_RANK_MASK == int(
-    sum(8 ** np.arange(NUM_RANKS - CARDS_FOR_A_STRAIGHT, NUM_RANKS))
+    sum(8 ** np.arange(NUM_RANKS - CARDS_FOR_A_STRAIGHT, NUM_RANKS, dtype=np.uint64))
 )
 
 
@@ -642,10 +657,13 @@ def simulate_hands_mask_gpu_cuda(num_decks, rng):
 
 
 # %%
-assert np.allclose(simulate_hands_mask_gpu_cuda(10**7, RNG), EXPECTED_PROB, atol=0.0001)
+if cuda.is_available():
+  assert np.allclose(simulate_hands_mask_gpu_cuda(10**7, RNG), EXPECTED_PROB, atol=0.0001)
 
 # %%
-# %timeit -n1 -r5 simulate_hands_mask_gpu_cuda(10**7, RNG)  # ~50-100 ms.
+if cuda.is_available():
+  print('Timing:')
+  # %timeit -n1 -r5 simulate_hands_mask_gpu_cuda(10**7, RNG)  # ~50-100 ms.
 
 # %%
 if cuda.is_available():
