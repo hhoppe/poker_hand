@@ -393,7 +393,8 @@ def compute_chunk(args):
 def simulate_hands_array_cpu_numba_multiprocess(num_decks, rng):
   num_processes = multiprocessing.cpu_count()
   chunk_num_decks = math.ceil(num_decks / num_processes)
-  chunks = [(chunk_num_decks, np.random.default_rng(rng)) for i in range(num_processes)]
+  new_rngs = rng.spawn(num_processes)
+  chunks = [(chunk_num_decks, new_rng) for new_rng in new_rngs]
   with multiprocessing.get_context('fork').Pool(num_processes) as pool:
     results = pool.map(compute_chunk, chunks)
   return np.mean(results, axis=0)
@@ -506,6 +507,9 @@ if cuda.is_available():
 # Thanks to Marcel Gavriliu for this approach of storing card bitmasks and summing them.
 
 # %%
+THREADS_PER_BLOCK = 256
+
+# %%
 CARD_COUNT_BITS = 3  # We use 3 bits to encode 0-7 cards for both ranks and suits.
 RANKS_ONE = 0b_001_001_001_001_001_001_001_001_001_001_001_001_001
 RANKS_TWO = RANKS_ONE << 1
@@ -522,21 +526,6 @@ assert ROYAL_STRAIGHT_RANK_MASK == int(
 
 
 # %%
-def create_table_mask_of_card():
-  lst = [
-      (1 << (CARD_COUNT_BITS * (NUM_RANKS + suit))) | (1 << (CARD_COUNT_BITS * rank))
-      for suit in range(NUM_SUITS)
-      for rank in range(NUM_RANKS)
-  ]
-  return np.array(lst, np.uint64)
-
-
-# %%
-# Table of 52 uint64, each the "(4 + 13) * 3"-bit mask encoding of the suit and rank of a card.
-TABLE_MASK_OF_CARD = create_table_mask_of_card()
-
-
-# %%
 def create_table_straights_rank_mask():
   lst = [0b_001_001_001_001_001 << (i * 3) for i in range(9)]  # '23456' to 'TJQKA'.
   lst.append(0b_001_000_000_000_000_000_000_000_000_001_001_001_001)  # '2345A'.
@@ -549,9 +538,13 @@ TABLE_STRAIGHTS_RANK_MASK = create_table_straights_rank_mask()
 
 
 # %%
-# Move TABLE_MASK_OF_CARD into shared memory??
-# Try using THREADS_PER_BLOCK + 1 on block_tally??
-# Try using np.int32 on block_deck??
+@numba.jit
+def mask_of_card(card):
+  """Return a bitmask of 4*3 + 13*3 bits encoding the suit and rank of 0 <= `card` < 52."""
+  suit_index = card & 0b11
+  rank_index = card >> 2
+  mask = (1 << (suit_index * 3 + NUM_RANKS * 3)) | (1 << (rank_index * 3))
+  return mask
 
 
 # %%
@@ -602,7 +595,7 @@ def outcome_of_hand_bitmask(bitmask_sum):
 
 
 # %%
-@cuda.jit
+@cuda.jit(fastmath=True)
 def gpu_bitmask(rng_states, num_decks_per_thread, global_tally):
   # pylint: disable=too-many-function-args, no-value-for-parameter, comparison-with-callable
   thread_index = cuda.grid(1)
@@ -610,9 +603,9 @@ def gpu_bitmask(rng_states, num_decks_per_thread, global_tally):
     return
 
   thread_id = cuda.threadIdx.x  # Index within block.
-  block_tally = cuda.shared.array((THREADS_PER_BLOCK, NUM_OUTCOMES), np.int32)
+  block_tally = cuda.shared.array((NUM_OUTCOMES, THREADS_PER_BLOCK), np.int32)
   block_deck = cuda.shared.array((THREADS_PER_BLOCK, DECK_SIZE), np.uint8)
-  tally = block_tally[thread_id]
+  tally = block_tally[:, thread_id]
   deck = block_deck[thread_id]
 
   tally[:] = 0
@@ -627,35 +620,40 @@ def gpu_bitmask(rng_states, num_decks_per_thread, global_tally):
     for i in range(numba.int32(51), numba.int32(0), numba.int32(-1)):
       random_uint32, s0, s1, s2, s3 = random32.xoshiro128p_next_raw(s0, s1, s2, s3)
       s0, s1, s2, s3 = numba.uint32(s0), numba.uint32(s1), numba.uint32(s2), numba.uint32(s3)
-      j = random_uint32 % numba.uint32(i + 1)
+      if 0:
+        j = random_uint32 % numba.uint32(i + 1)  # Remainder is somewhat expensive in CUDA.
+      else:
+        # In `random_uint32`, the msb have better randomness than the lsb, so float32 mul is better.
+        value_in_unit_interval = random32.uint32_to_unit_float32(random_uint32)
+        j = int(numba.float32(value_in_unit_interval * numba.float32(i + 1)))
       deck[i], deck[j] = deck[j], deck[i]
 
-    MASK = cuda.const.array_like(TABLE_MASK_OF_CARD)
-    mask0, mask1, mask2, mask3 = MASK[deck[0]], MASK[deck[1]], MASK[deck[2]], MASK[deck[3]]
+    mask0, mask1 = mask_of_card(deck[0]), mask_of_card(deck[1])
+    mask2, mask3 = mask_of_card(deck[2]), mask_of_card(deck[3])
     bitmask_sum = mask0 + mask1 + mask2 + mask3
 
     for hand_index in range(np.int32(HANDS_PER_DECK)):
-      mask4 = MASK[deck[hand_index + 4]]
+      mask4 = mask_of_card(deck[hand_index + 4])
       bitmask_sum += mask4
       outcome = numba.int32(outcome_of_hand_bitmask(bitmask_sum))
       tally[outcome] += 1
       bitmask_sum -= mask0
       mask0, mask1, mask2, mask3 = mask1, mask2, mask3, mask4
 
-  # First accumulate a per-block tally, then accumulate that tally into the global tally.
-  shared_tally = cuda.shared.array(NUM_OUTCOMES, np.int64)  # Per-block intermediate tally.
-  if thread_id == 0:
-    shared_tally[:] = 0
+  # Compute a parallel sum reduction within the block.
   cuda.syncthreads()
-
-  # Each thread adds its local results to shared memory.
-  for i in range(NUM_OUTCOMES):
-    cuda.atomic.add(shared_tally, i, tally[i])
+  stride = THREADS_PER_BLOCK // 2
+  while stride > 0:
+    if thread_id < stride and thread_index + stride < len(rng_states):
+      for outcome in range(NUM_OUTCOMES):
+        block_tally[outcome, thread_id] += block_tally[outcome, thread_id + stride]
     cuda.syncthreads()
+    stride //= 2
 
+  # The first thread in each block adds results to the global tally.
   if thread_id == 0:
-    for i in range(NUM_OUTCOMES):
-      cuda.atomic.add(global_tally, i, shared_tally[i])
+    for outcome in range(NUM_OUTCOMES):
+      cuda.atomic.add(global_tally, outcome, block_tally[outcome, 0])
 
 
 # %%
@@ -675,7 +673,7 @@ def simulate_hands_mask_gpu_cuda(num_decks, rng):
 
 
 # %%
-# simulate_poker_hands(10**7, 'mask_gpu_cuda', simulate_hands_mask_gpu_cuda)
+# simulate_poker_hands(10**9, 'mask_gpu_cuda', simulate_hands_mask_gpu_cuda)  # ~9-11 G hands/s
 
 # %%
 if cuda.is_available():
@@ -683,8 +681,12 @@ if cuda.is_available():
 
 # %%
 if cuda.is_available():
+  assert np.allclose(simulate_hands_mask_gpu_cuda(10**9, RNG), EXPECTED_PROB, atol=0.0001)
+
+# %%
+if cuda.is_available():
   print('Timing:')
-  # %timeit -n1 -r5 simulate_hands_mask_gpu_cuda(10**7, RNG)  # ~50-100 ms.
+  # %timeit -n1 -r10 simulate_hands_mask_gpu_cuda(10**7, RNG)  # ~41 ms if low variance.
 
 # %%
 if cuda.is_available():
@@ -725,7 +727,7 @@ def simulate_poker_hands(desired_num_hands, func_name, func):
   print(f'\nFor {func_name} simulating {num_hands:,} hands:')
 
   # Ensure the function is jitted.
-  _ = func(int(100_000 * COMPLEXITY_ADJUSTMENT[func_name]), RNG)
+  _ = func(num_decks // 10, RNG)
 
   start_time = time.perf_counter_ns()
   results = func(num_decks, RNG)
@@ -739,8 +741,10 @@ def simulate_poker_hands(desired_num_hands, func_name, func):
   for outcome, result_prob in zip(Outcome, results):
     reference_prob = outcome.reference_count / comb(DECK_SIZE, HAND_SIZE)
     error = result_prob - reference_prob
+    estimate_sdv = (reference_prob * (1 - reference_prob) / num_hands) ** 0.5
+    sdv = error / estimate_sdv
     s = f'  {outcome.string_name:<16}: {result_prob * 100:8.5f}%'
-    s += f'  (vs. reference {reference_prob * 100:8.5f}%  error:{error * 100:8.5f}%)'
+    s += f'  (vs. ref. {reference_prob * 100:8.5f}%  error:{error * 100:8.5f}% {sdv:6.2f}σ)'
     print(s)
 
 
@@ -755,7 +759,7 @@ def compare_simulations(base_num_hands):
 compare_simulations(base_num_hands=10**7)
 
 # %%
-# 135k, 33m, 350m, 2200-3400m, 6000m-7200m
+# 135k, 33m, 350m, 2200-3400m, 8000-12500m
 
 # %%
 if 0:
@@ -763,18 +767,18 @@ if 0:
 
 # %%
 # For mask_gpu_cuda simulating 1,000,000,000,032 hands:
-#  Elapsed time is 94.600 s, or 10,600,000,000 hands/s.
+#  Elapsed time is 80.862 s, or 12,400,000,000 hands/s.
 #  Probabilities:
-#   Royal flush     :  0.00015%  (vs. reference  0.00015%  error: 0.00000%)
-#   Straight flush  :  0.00138%  (vs. reference  0.00139%  error:-0.00000%)
-#   Four of a kind  :  0.02401%  (vs. reference  0.02401%  error: 0.00000%)
-#   Full house      :  0.14406%  (vs. reference  0.14406%  error: 0.00001%)
-#   Flush           :  0.19654%  (vs. reference  0.19654%  error:-0.00000%)
-#   Straight        :  0.39245%  (vs. reference  0.39246%  error:-0.00001%)
-#   Three of a kind :  2.11288%  (vs. reference  2.11285%  error: 0.00003%)
-#   Two pair        :  4.75395%  (vs. reference  4.75390%  error: 0.00005%)
-#   One pair        : 42.25697%  (vs. reference 42.25690%  error: 0.00007%)
-#   High card       : 50.11760%  (vs. reference 50.11774%  error:-0.00014%)
+#   Royal flush     :  0.00015%  (vs. ref.  0.00015%  error:-0.00000%  -0.98σ)
+#   Straight flush  :  0.00138%  (vs. ref.  0.00139%  error:-0.00000%  -0.66σ)
+#   Four of a kind  :  0.02401%  (vs. ref.  0.02401%  error: 0.00000%   0.11σ)
+#   Full house      :  0.14406%  (vs. ref.  0.14406%  error: 0.00000%   1.31σ)
+#   Flush           :  0.19654%  (vs. ref.  0.19654%  error: 0.00000%   0.50σ)
+#   Straight        :  0.39247%  (vs. ref.  0.39246%  error: 0.00000%   0.76σ)
+#   Three of a kind :  2.11285%  (vs. ref.  2.11285%  error: 0.00000%   0.14σ)
+#   Two pair        :  4.75391%  (vs. ref.  4.75390%  error: 0.00001%   0.31σ)
+#   One pair        : 42.25699%  (vs. ref. 42.25690%  error: 0.00009%   1.76σ)
+#   High card       : 50.11763%  (vs. ref. 50.11774%  error:-0.00011%  -2.15σ)
 
 # %% [markdown]
 # ## End

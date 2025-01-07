@@ -75,6 +75,21 @@ def create_table_straights_rank_present():
 # Table of 10 uint32, each the 13-bit mask encoding of a straight.
 TABLE_STRAIGHTS_RANK_PRESENT = create_table_straights_rank_present()
 
+
+# %%
+def create_table_mask_of_card():
+  lst = [
+      (1 << (CARD_COUNT_BITS * (NUM_RANKS + suit))) | (1 << (CARD_COUNT_BITS * rank))
+      for suit in range(NUM_SUITS)
+      for rank in range(NUM_RANKS)
+  ]
+  return np.array(lst, np.uint64)
+
+
+# %%
+# Table of 52 uint64, each the "(4 + 13) * 3"-bit mask encoding of the suit and rank of a card.
+TABLE_MASK_OF_CARD = create_table_mask_of_card()
+
 # %%
 is_straight = rank_present in TABLE_STRAIGHTS_RANK_PRESENT
 for straight in TABLE_STRAIGHTS_RANK_PRESENT:  # Even faster than cuda.const.array_like().
@@ -118,7 +133,6 @@ def popc(x):
 
 print(popc(43))
 
-
 # %%
 # for mask in [0b_101_000_000_000, 0b_100_001_000_0000, 0b_011_010_000_000, 0b_011_001_001_000, 0b_010_010_001_000, 0b_010_001_001_001]:
 #   expr1 = popc(mask & (mask >> 2))
@@ -133,6 +147,29 @@ print(popc(43))
 # 1608 4 4 7 0 0 0
 # 1160 3 6 5 0 0 0
 # 1097 4 5 7 0 0 0
+
+# %%
+MASK = cuda.const.array_like(TABLE_MASK_OF_CARD)
+mask0, mask1, mask2, mask3 = MASK[deck[0]], MASK[deck[1]], MASK[deck[2]], MASK[deck[3]]
+
+mask4 = MASK[deck[hand_index + 4]]
+
+# %%
+# First accumulate a per-block tally, then accumulate that tally into the global tally.
+shared_tally = cuda.shared.array(NUM_OUTCOMES, np.int64)  # Per-block intermediate tally.
+if thread_id == 0:
+  shared_tally[:] = 0
+cuda.syncthreads()
+
+# Each thread adds its local results to shared memory.
+for i in range(NUM_OUTCOMES):
+  cuda.atomic.add(shared_tally, i, tally[i])
+  cuda.syncthreads()
+
+if thread_id == 0:
+  for i in range(NUM_OUTCOMES):
+    cuda.atomic.add(global_tally, i, shared_tally[i])
+
 
 # %%
 def write_cuda_assembly_code():
