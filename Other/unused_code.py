@@ -183,3 +183,32 @@ def write_cuda_assembly_code():
 
 # %%
 @cuda.jit(numba.uint16(numba.uint64), device=True, fastmath=True)
+
+# %%
+
+  # Compute a parallel 64-bit sum reduction on the outcome tally.
+  cuda.syncthreads()
+  temp_tally = cuda.shared.array(NUM_OUTCOMES, np.int64)  # Per-block tally.
+  temp_tally[:] = 0
+  cuda.syncthreads()
+
+  # First do a sum reduction within each warp (still at 32-bit precision).
+  WARP_SIZE = 32
+  lane_id = thread_id & (WARP_SIZE - 1)
+
+  for outcome in range(NUM_OUTCOMES):
+    value = block_tally[outcome, thread_id]
+    offset = WARP_SIZE // 2
+    while offset > 0:
+      if thread_index + offset < len(rng_states):
+        value += cuda.shfl_down_sync(0xffffffff, value, offset)
+      offset //= 2
+    if lane_id == 0:
+      # Convert to 64-bit only when storing warp reduction result.
+      cuda.atomic.add(temp_tally, outcome, numba.int64(value))
+  cuda.syncthreads()
+
+  # Final reduction across blocks to global_tally.
+  if thread_id == 0:
+    for outcome in range(NUM_OUTCOMES):
+      cuda.atomic.add(global_tally, outcome, temp_tally[outcome])

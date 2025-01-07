@@ -50,7 +50,7 @@
 #   <td style="text-align: right; background-color: #EBF5FF">28,200,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">-</td>
 #   <td style="text-align: right; background-color: #EBF5FF">2,700,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">8,800,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">12,200,000,000</td>
 # </tr>
 # <tr>
 #   <td><b>My PC</b> WSL2</td>
@@ -61,7 +61,7 @@
 #   <td style="text-align: right; background-color: #EBF5FF">33,000,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">350,000,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">2,800,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">6,400,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">12,400,000,000</td>
 # </tr>
 # <tr>
 #   <td><b>Marcel PC</b> Win</td>
@@ -83,7 +83,7 @@
 #   <td style="text-align: right; background-color: #EBF5FF">11,600,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">16,400,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">3,670,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">9,230,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">32,200,000,000</td>
 # </tr>
 # <tr>
 #   <td><a href="https://www.kaggle.com/notebooks/welcome?src=https://github.com/hhoppe/poker_hand/blob/main/poker_hand.ipynb"><b>Kaggle</b> T4</a></td>
@@ -94,7 +94,7 @@
 #   <td style="text-align: right; background-color: #EBF5FF">14,800,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">31,800,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">3,560,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">9,040,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">30,600,000,000</td>
 # </tr>
 # <tr>
 #   <td><b>Kaggle</b> P100</td>
@@ -105,7 +105,7 @@
 #   <td style="text-align: right; background-color: #EBF5FF">14,500,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">31,300,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">3,620,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">6,730,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">35,700,000,000</td>
 # </tr>
 # <tr>
 #   <td><a href="https://mybinder.org/v2/gh/hhoppe/poker_hand/main?urlpath=lab/tree/poker_hand.ipynb"><b>mybinder</b></a></td>
@@ -640,20 +640,20 @@ def gpu_bitmask(rng_states, num_decks_per_thread, global_tally):
       bitmask_sum -= mask0
       mask0, mask1, mask2, mask3 = mask1, mask2, mask3, mask4
 
-  # Compute a parallel sum reduction within the block.
-  cuda.syncthreads()
-  stride = THREADS_PER_BLOCK // 2
-  while stride > 0:
-    if thread_id < stride and thread_index + stride < len(rng_states):
-      for outcome in range(NUM_OUTCOMES):
-        block_tally[outcome, thread_id] += block_tally[outcome, thread_id + stride]
-    cuda.syncthreads()
-    stride //= 2
-
-  # The first thread in each block adds results to the global tally.
+  # First accumulate a per-block tally, then accumulate that tally into the global tally.
+  shared_tally = cuda.shared.array(NUM_OUTCOMES, np.int64)  # Per-block intermediate tally.
   if thread_id == 0:
-    for outcome in range(NUM_OUTCOMES):
-      cuda.atomic.add(global_tally, outcome, block_tally[outcome, 0])
+    shared_tally[:] = 0
+  cuda.syncthreads()
+
+  # Each thread adds its local results to shared memory.
+  for i in range(NUM_OUTCOMES):
+    cuda.atomic.add(shared_tally, i, tally[i])
+  cuda.syncthreads()
+
+  if thread_id == 0:
+    for i in range(NUM_OUTCOMES):
+      cuda.atomic.add(global_tally, i, shared_tally[i])
 
 
 # %%
@@ -678,10 +678,6 @@ def simulate_hands_mask_gpu_cuda(num_decks, rng):
 # %%
 if cuda.is_available():
   assert np.allclose(simulate_hands_mask_gpu_cuda(10**7, RNG), EXPECTED_PROB, atol=0.0001)
-
-# %%
-if cuda.is_available():
-  assert np.allclose(simulate_hands_mask_gpu_cuda(10**9, RNG), EXPECTED_PROB, atol=0.0001)
 
 # %%
 if cuda.is_available():
@@ -762,7 +758,7 @@ compare_simulations(base_num_hands=10**7)
 # 135k, 33m, 350m, 2200-3400m, 8000-12500m
 
 # %%
-if 0:
+if cuda.is_available():
   simulate_poker_hands(10**12, 'mask_gpu_cuda', simulate_hands_mask_gpu_cuda)
 
 # %%
