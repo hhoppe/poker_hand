@@ -23,12 +23,12 @@
 # <table style="margin-left: 0">
 # <tr>
 #   <th colspan="4"></th>
-#   <th colspan="5" style="text-align: center">Simulation rates (hands/s)</th>
+#   <th colspan="7" style="text-align: center">Simulation rates (hands/s)</th>
 # </tr>
 # <tr>
 #   <th colspan="4">Compute capabilities</th>
 #   <th colspan="4" style="text-align: center; background-color: #EBF5FF">Array-based</th>
-#   <th colspan="1" style="text-align: center; background-color: #F0FDF4">Mask-based</th>
+#   <th colspan="3" style="text-align: center; background-color: #F0FDF4">Bitmask-based</th>
 # </tr>
 # <tr>
 #   <th>Platform</th>
@@ -39,6 +39,8 @@
 #   <th style="background-color: #EBF5FF">Numba</th>
 #   <th style="background-color: #EBF5FF">Multiprocess</th>
 #   <th style="background-color: #EBF5FF">CUDA</th>
+#   <th style="background-color: #F0FDF4">Numba</th>
+#   <th style="background-color: #F0FDF4">Multiprocess</th>
 #   <th style="background-color: #F0FDF4">CUDA</th>
 # </tr>
 # <tr>
@@ -49,7 +51,9 @@
 #   <td style="text-align: right; background-color: #EBF5FF">21,800</td>
 #   <td style="text-align: right; background-color: #EBF5FF">28,200,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">-</td>
-#   <td style="text-align: right; background-color: #EBF5FF">2,700,000,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">3,300,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">125,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">-</td>
 #   <td style="text-align: right; background-color: #F0FDF4">12,200,000,000</td>
 # </tr>
 # <tr>
@@ -61,6 +65,8 @@
 #   <td style="text-align: right; background-color: #EBF5FF">33,000,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">350,000,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">2,800,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">138,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">912,000,000</td>
 #   <td style="text-align: right; background-color: #F0FDF4">12,400,000,000</td>
 # </tr>
 # <tr>
@@ -72,6 +78,8 @@
 #   <td style="text-align: right; background-color: #EBF5FF"><s>5,160,000</s></td>
 #   <td style="text-align: right; background-color: #EBF5FF">-</td>
 #   <td style="text-align: right; background-color: #EBF5FF"><s>2,280,000,000</s></td>
+#   <td style="text-align: right; background-color: #F0FDF4">?00,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">?,000,000,000</td>
 #   <td style="text-align: right; background-color: #F0FDF4">-</td>
 # </tr>
 # <tr>
@@ -83,6 +91,8 @@
 #   <td style="text-align: right; background-color: #EBF5FF">11,600,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">16,400,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">3,670,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">?00,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">?,000,000,000</td>
 #   <td style="text-align: right; background-color: #F0FDF4">32,200,000,000</td>
 # </tr>
 # <tr>
@@ -94,6 +104,8 @@
 #   <td style="text-align: right; background-color: #EBF5FF">14,800,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">31,800,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">3,560,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">?00,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">?,000,000,000</td>
 #   <td style="text-align: right; background-color: #F0FDF4">30,600,000,000</td>
 # </tr>
 # <tr>
@@ -105,6 +117,8 @@
 #   <td style="text-align: right; background-color: #EBF5FF">14,500,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">31,300,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">3,620,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">?00,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">?,000,000,000</td>
 #   <td style="text-align: right; background-color: #F0FDF4">35,700,000,000</td>
 # </tr>
 # <tr>
@@ -116,6 +130,8 @@
 #   <td style="text-align: right; background-color: #EBF5FF">7,050,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">3,220,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">-</td>
+#   <td style="text-align: right; background-color: #F0FDF4">?00,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">?,000,000,000</td>
 #   <td style="text-align: right; background-color: #F0FDF4">-</td>
 # </tr>
 # <tr>
@@ -127,6 +143,8 @@
 #   <td style="text-align: right; background-color: #EBF5FF">22,400,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">12,600,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">-</td>
+#   <td style="text-align: right; background-color: #F0FDF4">?00,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">?,000,000,000</td>
 #   <td style="text-align: right; background-color: #F0FDF4">-</td>
 # </tr>
 # </table>
@@ -231,6 +249,36 @@ class Outcome(enum.IntEnum):
 NUM_OUTCOMES = len(Outcome)
 EXPECTED_PROB = np.array([o.reference_count for o in Outcome]) / comb(DECK_SIZE, HAND_SIZE)
 assert np.allclose(np.sum(EXPECTED_PROB), 1.0)
+
+
+# %%
+@numba.extending.intrinsic
+def popc_helper(typing_context, src):
+  _ = typing_context
+  if not isinstance(src, numba.types.Integer):
+    return None
+  DICT = {numba.uint64: 'i64', numba.uint32: 'i32', numba.uint16: 'i16', numba.uint8: 'i8'}
+  DICT |= {numba.int64: 'i64', numba.int32: 'i32', numba.int16: 'i16', numba.int8: 'i8'}
+  llvm_type = DICT[src]
+
+  def codegen(context, builder, signature, args):
+    _ = context, signature
+    return numba.cpython.mathimpl.call_fp_intrinsic(builder, 'llvm.ctpop.' + llvm_type, args)
+
+  return src(src), codegen
+
+
+@numba.njit
+def cpu_popc(x):  # https://stackoverflow.com/a/77103233
+  """Return the ("population") count of set bits in an integer."""
+  return popc_helper(x)  # pylint: disable=no-value-for-parameter
+
+
+# %%
+@numba.njit
+def gpu_popc(x):
+  """Return the ("population") count of set bits in an integer."""
+  return cuda.popc(x)  # pylint: disable=too-many-function-args
 
 
 # %%
@@ -340,10 +388,10 @@ outcome_of_hand_array_numba = numba.njit(outcome_of_hand_array_python)
 
 
 # %%
-def make_compute_cpu(outcome_of_hand_array):
-  # Return a specialized compute_cpu function for the given outcome_of_hand_array function.
+def make_compute_array_cpu(outcome_of_hand_array):
+  # Return a specialized compute_array_cpu function for the given outcome_of_hand_array function.
 
-  def compute_cpu(num_decks, rng):
+  def compute_array_cpu(num_decks, rng):
     BLOCK_SIZE = 10
     # deck_block = np.arange(DECK_SIZE, dtype=np.uint8).repeat(BLOCK_SIZE).reshape(DECK_SIZE, -1).T
     deck_block = np.empty((BLOCK_SIZE, DECK_SIZE), dtype=np.uint8)
@@ -361,12 +409,12 @@ def make_compute_cpu(outcome_of_hand_array):
           tally[outcome] += 1
     return tally / (num_decks * HANDS_PER_DECK)
 
-  return compute_cpu
+  return compute_array_cpu
 
 
 # %%
-simulate_hands_array_cpu_python = make_compute_cpu(outcome_of_hand_array_python)
-simulate_hands_array_cpu_numba = numba.njit(make_compute_cpu(outcome_of_hand_array_numba))
+simulate_hands_array_cpu_python = make_compute_array_cpu(outcome_of_hand_array_python)
+simulate_hands_array_cpu_numba = numba.njit(make_compute_array_cpu(outcome_of_hand_array_numba))
 
 
 # %%
@@ -384,7 +432,7 @@ assert np.allclose(simulate_hands_array_cpu_numba(10**5, RNG), EXPECTED_PROB, at
 
 
 # %%
-def compute_chunk(args):
+def compute_array_chunk(args):
   num_decks, rng = args
   return simulate_hands_array_cpu_numba(num_decks, rng)
 
@@ -396,7 +444,7 @@ def simulate_hands_array_cpu_numba_multiprocess(num_decks, rng):
   new_rngs = rng.spawn(num_processes)
   chunks = [(chunk_num_decks, new_rng) for new_rng in new_rngs]
   with multiprocessing.get_context('fork').Pool(num_processes) as pool:
-    results = pool.map(compute_chunk, chunks)
+    results = pool.map(compute_array_chunk, chunks)
   return np.mean(results, axis=0)
 
 
@@ -428,9 +476,6 @@ def gpu_array(rng_states, num_decks_per_thread, global_tally):
     deck = block_deck[thread_id]
     ranks = block_ranks[thread_id]
     freqs = block_freqs[thread_id]
-    # Note: transposed structure results in longer code and ~1.3x slower execution, e.g.:
-    # block_tally = cuda.shared.array((NUM_OUTCOMES, THREADS_PER_BLOCK), np.int32)
-    # tally = block_tally[:, thread_id]
   else:
     tally = cuda.local.array(NUM_OUTCOMES, np.int32)
     deck = cuda.local.array(DECK_SIZE, np.uint8)
@@ -515,6 +560,7 @@ RANKS_ONE = 0b_001_001_001_001_001_001_001_001_001_001_001_001_001
 RANKS_TWO = RANKS_ONE << 1
 RANKS_FOUR = RANKS_ONE << 2
 ROYAL_STRAIGHT_RANK_MASK = 0b_001_001_001_001_001_000_000_000_000_000_000_000_000
+ACE_LOW_STRAIGHT_RANK_MASK = 0b_001_000_000_000_000_000_000_000_000_001_001_001_001
 SUITS_ONE = 0b_001_001_001_001
 
 # %%
@@ -528,7 +574,7 @@ assert ROYAL_STRAIGHT_RANK_MASK == int(
 # %%
 def create_table_straights_rank_mask():
   lst = [0b_001_001_001_001_001 << (i * 3) for i in range(9)]  # '23456' to 'TJQKA'.
-  lst.append(0b_001_000_000_000_000_000_000_000_000_001_001_001_001)  # '2345A'.
+  lst.append(ACE_LOW_STRAIGHT_RANK_MASK)  # 'A2345'.
   return np.array(lst, np.uint64)
 
 
@@ -537,9 +583,13 @@ def create_table_straights_rank_mask():
 TABLE_STRAIGHTS_RANK_MASK = create_table_straights_rank_mask()
 
 
+# %% [markdown]
+# ### Hand evaluation
+
+
 # %%
 @numba.jit
-def mask_of_card(card):
+def mask_of_card(card: numba.uint8) -> numba.uint64:
   """Return a bitmask of 4*3 + 13*3 bits encoding the suit and rank of 0 <= `card` < 52."""
   suit_index = card & 0b11
   rank_index = card >> 2
@@ -549,7 +599,7 @@ def mask_of_card(card):
 
 # %%
 @numba.jit
-def determine_straight(rank_count_mask):
+def determine_straight(rank_count_mask: numba.uint64) -> bool:
   m = rank_count_mask
   t = TABLE_STRAIGHTS_RANK_MASK
   assert len(t) == 10
@@ -559,39 +609,110 @@ def determine_straight(rank_count_mask):
 
 
 # %%
-@numba.jit
-def outcome_of_hand_bitmask(bitmask_sum):
-  """Evaluate 5-card poker hand and return outcome ranking, using sum of card bitmasks."""
-  # pylint: disable=too-many-function-args
-  suit_count_mask = numba.uint32(bitmask_sum >> CARD_COUNT_BITS * NUM_RANKS)
-  rank_count_mask = numba.uint64(bitmask_sum & (2 ** (CARD_COUNT_BITS * NUM_RANKS) - 1))
+def make_outcome_of_hand_bitmask(popc):
 
-  is_flush = cuda.popc(numba.uint32(suit_count_mask & (suit_count_mask >> 2) & SUITS_ONE)) != 0
-  is_straight = determine_straight(rank_count_mask)
-  is_four = (rank_count_mask & RANKS_FOUR) != 0
-  is_three = ((rank_count_mask + RANKS_ONE) & RANKS_FOUR) != 0
-  mask_two_or_more = rank_count_mask & RANKS_TWO
-  num_two_or_more = numba.uint32(cuda.popc(mask_two_or_more))  # Count number of set bits.
+  def outcome_of_hand_bitmask(bitmask_sum):
+    """Evaluate 5-card poker hand and return outcome ranking, using sum of card bitmasks."""
+    # pylint: disable=too-many-function-args
+    suit_count_mask = numba.uint32(bitmask_sum >> CARD_COUNT_BITS * NUM_RANKS)
+    rank_count_mask = numba.uint64(bitmask_sum & (2 ** (CARD_COUNT_BITS * NUM_RANKS) - 1))
 
-  if is_flush and is_straight:
-    if rank_count_mask == ROYAL_STRAIGHT_RANK_MASK:
-      return Outcome.ROYAL_FLUSH.value
-    return Outcome.STRAIGHT_FLUSH.value
-  if is_four:
-    return Outcome.FOUR_OF_A_KIND.value
-  if is_three and num_two_or_more > 1:
-    return Outcome.FULL_HOUSE.value
-  if is_flush:
-    return Outcome.FLUSH.value
-  if is_straight:
-    return Outcome.STRAIGHT.value
-  if is_three:
-    return Outcome.THREE_OF_A_KIND.value
-  if num_two_or_more == 2:
-    return Outcome.TWO_PAIR.value
-  if num_two_or_more == 1:
-    return Outcome.ONE_PAIR.value
-  return Outcome.HIGH_CARD.value
+    is_flush = popc(numba.uint32(suit_count_mask & (suit_count_mask >> 2) & SUITS_ONE)) != 0
+    is_straight = determine_straight(rank_count_mask)
+    is_four = (rank_count_mask & RANKS_FOUR) != 0
+    is_three = ((rank_count_mask + RANKS_ONE) & RANKS_FOUR) != 0
+    mask_two_or_more = rank_count_mask & RANKS_TWO
+    num_two_or_more = numba.uint32(popc(mask_two_or_more))
+
+    if is_flush and is_straight:
+      if rank_count_mask == ROYAL_STRAIGHT_RANK_MASK:
+        return Outcome.ROYAL_FLUSH.value
+      return Outcome.STRAIGHT_FLUSH.value
+    if is_four:
+      return Outcome.FOUR_OF_A_KIND.value
+    if is_three and num_two_or_more > 1:
+      return Outcome.FULL_HOUSE.value
+    if is_flush:
+      return Outcome.FLUSH.value
+    if is_straight:
+      return Outcome.STRAIGHT.value
+    if is_three:
+      return Outcome.THREE_OF_A_KIND.value
+    if num_two_or_more == 2:
+      return Outcome.TWO_PAIR.value
+    if num_two_or_more == 1:
+      return Outcome.ONE_PAIR.value
+    return Outcome.HIGH_CARD.value
+
+  return outcome_of_hand_bitmask
+
+
+outcome_of_hand_bitmask_numba = numba.njit(make_outcome_of_hand_bitmask(cpu_popc))
+outcome_of_hand_bitmask_cuda = numba.njit(make_outcome_of_hand_bitmask(gpu_popc))
+
+
+# %% [markdown]
+# ### CPU simulation
+
+
+# %%
+@numba.njit
+def simulate_hands_bitmask_cpu_numba(num_decks, rng):
+  BLOCK_SIZE = 10
+  deck_block = np.empty((BLOCK_SIZE, DECK_SIZE), dtype=np.uint8)
+  deck_block[:] = np.arange(DECK_SIZE, dtype=np.uint8)
+  tally = np.zeros(NUM_OUTCOMES, np.int64)
+
+  for deck_index_start in range(0, num_decks, BLOCK_SIZE):
+    deck_block2 = rng.permutation(deck_block, axis=1)
+
+    for deck_index in range(deck_index_start, min(deck_index_start + BLOCK_SIZE, num_decks)):
+      deck = deck_block2[deck_index - deck_index_start]
+      mask0, mask1 = mask_of_card(deck[0]), mask_of_card(deck[1])
+      mask2, mask3 = mask_of_card(deck[2]), mask_of_card(deck[3])
+      bitmask_sum = mask0 + mask1 + mask2 + mask3
+
+      for hand_index in range(HANDS_PER_DECK):
+        mask4 = mask_of_card(deck[hand_index + 4])
+        bitmask_sum += mask4
+        outcome = outcome_of_hand_bitmask_numba(bitmask_sum)
+        tally[outcome] += 1
+        bitmask_sum -= mask0
+        mask0, mask1, mask2, mask3 = mask1, mask2, mask3, mask4
+
+  return tally / (num_decks * HANDS_PER_DECK)
+
+
+# %%
+# simulate_poker_hands(10**7, 'bitmask_cpu_numba', simulate_hands_bitmask_cpu_numba)  # ~130 m hands/s
+
+# %%
+assert np.allclose(simulate_hands_bitmask_cpu_numba(10**5, RNG), EXPECTED_PROB, atol=0.002)
+
+
+# %%
+# %timeit -n2 -r2 simulate_hands_bitmask_cpu_numba(10**5, RNG)  # ~35 ms if low variance.
+
+
+# %%
+def compute_bitmask_chunk(args):
+  num_decks, rng = args
+  return simulate_hands_bitmask_cpu_numba(num_decks, rng)
+
+
+# %%
+def simulate_hands_bitmask_cpu_numba_multiprocess(num_decks, rng):
+  num_processes = multiprocessing.cpu_count()
+  chunk_num_decks = math.ceil(num_decks / num_processes)
+  new_rngs = rng.spawn(num_processes)
+  chunks = [(chunk_num_decks, new_rng) for new_rng in new_rngs]
+  with multiprocessing.get_context('fork').Pool(num_processes) as pool:
+    results = pool.map(compute_bitmask_chunk, chunks)
+  return np.mean(results, axis=0)
+
+
+# %% [markdown]
+# ### GPU simulation
 
 
 # %%
@@ -599,16 +720,17 @@ def outcome_of_hand_bitmask(bitmask_sum):
 def gpu_bitmask(rng_states, num_decks_per_thread, global_tally):
   # pylint: disable=too-many-function-args, no-value-for-parameter, comparison-with-callable
   thread_index = cuda.grid(1)
-  if thread_index >= len(rng_states):
-    return
-
   thread_id = cuda.threadIdx.x  # Index within block.
+
   block_tally = cuda.shared.array((NUM_OUTCOMES, THREADS_PER_BLOCK), np.int32)
   block_deck = cuda.shared.array((THREADS_PER_BLOCK, DECK_SIZE), np.uint8)
   tally = block_tally[:, thread_id]
   deck = block_deck[thread_id]
-
   tally[:] = 0
+
+  if thread_index >= len(rng_states):
+    return  # This must come after tally[] is zeroed, to simplify reduction below.
+
   for i in range(numba.uint8(DECK_SIZE)):  # Casting as uint8 nicely unrolls the loop.
     deck[i] = i
 
@@ -635,29 +757,33 @@ def gpu_bitmask(rng_states, num_decks_per_thread, global_tally):
     for hand_index in range(np.int32(HANDS_PER_DECK)):
       mask4 = mask_of_card(deck[hand_index + 4])
       bitmask_sum += mask4
-      outcome = numba.int32(outcome_of_hand_bitmask(bitmask_sum))
+      outcome = numba.int32(outcome_of_hand_bitmask_cuda(bitmask_sum))
       tally[outcome] += 1
       bitmask_sum -= mask0
       mask0, mask1, mask2, mask3 = mask1, mask2, mask3, mask4
 
-  # First accumulate a per-block tally, then accumulate that tally into the global tally.
-  shared_tally = cuda.shared.array(NUM_OUTCOMES, np.int64)  # Per-block intermediate tally.
-  if thread_id == 0:
-    shared_tally[:] = 0
+  # Compute a parallel sum reduction on the outcome tally.
+  temp_tally = cuda.shared.array(NUM_OUTCOMES, np.int64)  # Per-block tally.
+  temp_tally[:] = 0
   cuda.syncthreads()
 
-  # Each thread adds its local results to shared memory.
+  # First do a sum reduction within the 32 lanes of each warp (still at 32-bit precision).
   for i in range(NUM_OUTCOMES):
-    cuda.atomic.add(shared_tally, i, tally[i])
+    value = block_tally[i, thread_id]
+    for offset in [16, 8, 4, 2, 1]:
+      value += cuda.shfl_down_sync(0xFFFFFFFF, value, offset)
+    if cuda.laneid == 0:
+      cuda.atomic.add(temp_tally, i, numba.int64(value))  # Reduce across the block's warps.
   cuda.syncthreads()
 
+  # Final reduction across blocks to global_tally.
   if thread_id == 0:
     for i in range(NUM_OUTCOMES):
-      cuda.atomic.add(global_tally, i, shared_tally[i])
+      cuda.atomic.add(global_tally, i, temp_tally[i])
 
 
 # %%
-def simulate_hands_mask_gpu_cuda(num_decks, rng):
+def simulate_hands_bitmask_gpu_cuda(num_decks, rng):
   device = cuda.get_current_device()
   # Target enough threads for ~4 blocks per SM.
   target_num_threads = 4 * device.MULTIPROCESSOR_COUNT * THREADS_PER_BLOCK
@@ -673,16 +799,16 @@ def simulate_hands_mask_gpu_cuda(num_decks, rng):
 
 
 # %%
-# simulate_poker_hands(10**9, 'mask_gpu_cuda', simulate_hands_mask_gpu_cuda)  # ~9-11 G hands/s
+# simulate_poker_hands(10**9, 'bitmask_gpu_cuda', simulate_hands_bitmask_gpu_cuda)  # ~9-11 G hands/s.
 
 # %%
 if cuda.is_available():
-  assert np.allclose(simulate_hands_mask_gpu_cuda(10**7, RNG), EXPECTED_PROB, atol=0.0001)
+  assert np.allclose(simulate_hands_bitmask_gpu_cuda(10**7, RNG), EXPECTED_PROB, atol=0.0001)
 
 # %%
 if cuda.is_available():
   print('Timing:')
-  # %timeit -n1 -r10 simulate_hands_mask_gpu_cuda(10**7, RNG)  # ~41 ms if low variance.
+  # %timeit -n1 -r10 simulate_hands_bitmask_gpu_cuda(10**7, RNG)  # ~41 ms if low variance.
 
 # %%
 if cuda.is_available():
@@ -700,7 +826,9 @@ SIMULATE_FUNCTIONS = {
         'array_cpu_numba': simulate_hands_array_cpu_numba,
         'array_cpu_numba_multiprocess': simulate_hands_array_cpu_numba_multiprocess,
         'array_gpu_cuda': simulate_hands_array_gpu_cuda,
-        'mask_gpu_cuda': simulate_hands_mask_gpu_cuda,
+        'bitmask_cpu_numba': simulate_hands_bitmask_cpu_numba,
+        'bitmask_cpu_numba_multiprocess': simulate_hands_bitmask_cpu_numba_multiprocess,
+        'bitmask_gpu_cuda': simulate_hands_bitmask_gpu_cuda,
     }.items()
     if ('multiprocess' not in name or MULTIPROCESS_IS_AVAILABLE)
     and ('cuda' not in name or cuda.is_available())
@@ -712,7 +840,9 @@ COMPLEXITY_ADJUSTMENT = {
     'array_cpu_numba': 2.0,
     'array_cpu_numba_multiprocess': 20.0,
     'array_gpu_cuda': 100.0,
-    'mask_gpu_cuda': 100.0,
+    'bitmask_cpu_numba': 2.0,
+    'bitmask_cpu_numba_multiprocess': 20.0,
+    'bitmask_gpu_cuda': 200.0,
 }
 
 
@@ -755,14 +885,15 @@ def compare_simulations(base_num_hands):
 compare_simulations(base_num_hands=10**7)
 
 # %%
-# 135k, 33m, 350m, 2200-3400m, 8000-12500m
+# 135k, 33m, 350m, 2200-3400m, 135k, 890k, 8000-12500m
 
 # %%
-if cuda.is_available():
-  simulate_poker_hands(10**12, 'mask_gpu_cuda', simulate_hands_mask_gpu_cuda)
+if 0:
+  if cuda.is_available():
+    simulate_poker_hands(10**12, 'bitmask_gpu_cuda', simulate_hands_bitmask_gpu_cuda)
 
 # %%
-# For mask_gpu_cuda simulating 1,000,000,000,032 hands:
+# For bitmask_gpu_cuda simulating 1,000,000,000,032 hands:
 #  Elapsed time is 80.862 s, or 12,400,000,000 hands/s.
 #  Probabilities:
 #   Royal flush     :  0.00015%  (vs. ref.  0.00015%  error:-0.00000%  -0.98σ)

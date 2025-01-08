@@ -185,30 +185,171 @@ def write_cuda_assembly_code():
 @cuda.jit(numba.uint16(numba.uint64), device=True, fastmath=True)
 
 # %%
+# Compute a parallel sum reduction on the outcome tally.
+temp_tally = cuda.shared.array(NUM_OUTCOMES, np.int64)  # Per-block tally.
+temp_tally[:] = 0
+cuda.syncthreads()
 
-  # Compute a parallel 64-bit sum reduction on the outcome tally.
-  cuda.syncthreads()
-  temp_tally = cuda.shared.array(NUM_OUTCOMES, np.int64)  # Per-block tally.
-  temp_tally[:] = 0
-  cuda.syncthreads()
+# First do a sum reduction within the 32 lanes of each warp (still at 32-bit precision).
+for i in range(NUM_OUTCOMES):
+  value = block_tally[i, thread_id]
+  offset = cuda.warpsize // 2
+  while offset > 0:
+    value2 = cuda.shfl_down_sync(0xffffffff, value, offset);
+    if thread_index + offset < len(rng_states):
+      value += value2;
+    offset //= 2
+  if cuda.laneid == 0:
+    # Convert to 64-bit only when storing warp reduction result.
+    cuda.atomic.add(temp_tally, i, numba.int64(value))
+cuda.syncthreads()
 
-  # First do a sum reduction within each warp (still at 32-bit precision).
-  WARP_SIZE = 32
-  lane_id = thread_id & (WARP_SIZE - 1)
+# Final reduction across blocks to global_tally.
+if thread_id == 0:
+  for i in range(NUM_OUTCOMES):
+    cuda.atomic.add(global_tally, i, temp_tally[i])
 
-  for outcome in range(NUM_OUTCOMES):
-    value = block_tally[outcome, thread_id]
-    offset = WARP_SIZE // 2
-    while offset > 0:
-      if thread_index + offset < len(rng_states):
-        value += cuda.shfl_down_sync(0xffffffff, value, offset)
-      offset //= 2
-    if lane_id == 0:
-      # Convert to 64-bit only when storing warp reduction result.
-      cuda.atomic.add(temp_tally, outcome, numba.int64(value))
-  cuda.syncthreads()
+# %%
+import numba
+import numba.cuda as cuda
+import numpy as np
 
-  # Final reduction across blocks to global_tally.
-  if thread_id == 0:
-    for outcome in range(NUM_OUTCOMES):
-      cuda.atomic.add(global_tally, outcome, temp_tally[outcome])
+
+# %%
+@numba.extending.intrinsic
+def popc_helper(typing_context, src):
+  def codegen(context, builder, signature, args):
+    return numba.cpython.mathimpl.call_fp_intrinsic(builder, "llvm.ctpop.i64", args)
+  return numba.uint64(numba.uint64), codegen
+
+@numba.njit(numba.uint64(numba.uint64))
+def cpu_popc(x):  # https://stackoverflow.com/a/77103233
+  """Return the (population) count of set bits in an integer."""
+  return popc_helper(x)
+
+@numba.njit
+def common_function(x):
+  # ...
+  # some_long_code_that_should_not_get_duplicated.
+  # ...
+  # return cpu_popc(x)  # This works on the CPU path.
+  return cuda.popc(x)  # This works on the GPU path.
+
+@numba.njit
+def cpu_compute(n=5):
+  array_in = np.arange(n)
+  array_out = np.empty_like(array_in)
+  for i, value in enumerate(array_in):
+    array_out[i] = common_function(value)
+  return array_out
+
+@cuda.jit
+def gpu_kernel(array_in, array_out):
+  thread_index = cuda.grid(1)
+  if thread_index < len(array_in):
+    array_out[thread_index] = common_function(array_in[thread_index])
+
+def gpu_compute(n=5):
+  array_in = np.arange(n)
+  array_out = cuda.device_array_like(array_in)
+  gpu_kernel[1, len(array_in)](cuda.to_device(array_in), array_out)
+  return array_out.copy_to_host()
+
+# print(cpu_compute())
+print(gpu_compute())
+
+
+# %%
+# Earlier code plus...
+
+@numba.njit
+def gpu_popc(x):
+  return cuda.popc(x)
+  
+def make_common_function(popc):
+
+  def common_function(x):
+    # ...
+    # some_long_code_that_should_not_get_duplicated.
+    # ...
+    return popc(x)  # Works on both CPU and GPU path.
+
+  return common_function
+
+common_function_numba = numba.njit(make_common_function(cpu_popc))
+common_function_cuda = numba.njit(make_common_function(gpu_popc))
+
+@numba.njit
+def cpu_compute(n=5):
+  array_in = np.arange(n)
+  array_out = np.empty_like(array_in)
+  for i, value in enumerate(array_in):
+    array_out[i] = common_function_numba(value)
+  return array_out
+
+@cuda.jit
+def gpu_kernel(array_in, array_out):
+  thread_index = cuda.grid(1)
+  if thread_index < len(array_in):
+    array_out[thread_index] = common_function_cuda(array_in[thread_index])
+
+def gpu_compute(n=5):
+  array_in = np.arange(n)
+  array_out = cuda.device_array_like(array_in)
+  gpu_kernel[1, len(array_in)](cuda.to_device(array_in), array_out)
+  return array_out.copy_to_host()
+
+print(cpu_compute())
+print(gpu_compute())
+
+
+# %%
+@numba.extending.intrinsic
+def popc_helper(typing_context, src):
+  _ = typing_context, src
+
+  def codegen(context, builder, signature, args):
+    _ = context, signature
+    return numba.cpython.mathimpl.call_fp_intrinsic(builder, 'llvm.ctpop.i64', args)
+
+  return numba.uint64(numba.uint64), codegen
+
+
+@numba.njit  # (numba.uint64(numba.uint64))
+def cpu_popc(x):  # https://stackoverflow.com/a/77103233
+  """Return the ("population") count of set bits in an integer."""
+  return popc_helper(x)  # pylint: disable=no-value-for-parameter
+
+
+# %%
+@numba.extending.intrinsic
+def popc_helper(typing_context, src):
+  _ = typing_context
+  if not isinstance(src, numba.types.Integer):
+    return
+  DICT = {numba.uint64: 'i64', numba.uint32: 'i32', numba.uint16: 'i16', numba.uint8: 'i8'}
+  DICT |= {numba.int64: 'i64', numba.int32: 'i32', numba.int16: 'i16', numba.int8: 'i8'}
+  llvm_type = DICT[src]
+
+  def codegen(context, builder, signature, args):
+    _ = context, signature
+    return numba.cpython.mathimpl.call_fp_intrinsic(builder, 'llvm.ctpop.' + llvm_type, args)
+
+  return src(src), codegen
+
+@numba.njit
+def count_bits(x):
+  return popc_helper(x)
+
+print(count_bits(np.uint64(0b101101)))  # Output: 4
+print(count_bits(np.uint32(0b101101)))  # Output: 4
+print(count_bits(np.uint16(0b101101)))  # Output: 4
+print(count_bits(np.uint8(0b101101)))  # Output: 4
+print(count_bits(np.int64(0b101101)))  # Output: 4
+print(count_bits(np.int32(0b101101)))  # Output: 4
+print(count_bits(np.int16(0b101101)))  # Output: 4
+print(count_bits(np.int8(0b101101)))  # Output: 4
+
+# %%
+print(count_bits.inspect_asm().keys())
+print([str[:400] for str in count_bits.inspect_asm().values()])
