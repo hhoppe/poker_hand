@@ -79,8 +79,8 @@
 #   <td style="text-align: right; background-color: #EBF5FF">-</td>
 #   <td style="text-align: right; background-color: #EBF5FF"><s>2,280,000,000</s></td>
 #   <td style="text-align: right; background-color: #F0FDF4">?00,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">?,000,000,000</td>
 #   <td style="text-align: right; background-color: #F0FDF4">-</td>
+#   <td style="text-align: right; background-color: #F0FDF4">?,000,000,000</td>
 # </tr>
 # <tr>
 #   <td><a href="https://colab.research.google.com/github/hhoppe/poker_hand/blob/main/poker_hand.ipynb"><b>Colab</b> T4</a></td>
@@ -88,11 +88,11 @@
 #   <td style="text-align: center">Tesla T4</td>
 #   <td style="text-align: center">40</td>
 #   <td style="text-align: right; background-color: #EBF5FF">17,000</td>
-#   <td style="text-align: right; background-color: #EBF5FF">11,600,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">14,600,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">16,400,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">3,670,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">?00,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">?,000,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">60,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">63,000,000</td>
 #   <td style="text-align: right; background-color: #F0FDF4">32,200,000,000</td>
 # </tr>
 # <tr>
@@ -104,22 +104,22 @@
 #   <td style="text-align: right; background-color: #EBF5FF">14,800,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">31,800,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">3,560,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">?00,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">?,000,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">30,600,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">61,600,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">117,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">31,800,000,000</td>
 # </tr>
 # <tr>
-#   <td><b>Kaggle</b> P100</td>
+#   <td><a href="https://www.kaggle.com/notebooks/welcome?src=https://github.com/hhoppe/poker_hand/blob/main/poker_hand.ipynb"><b>Kaggle</b> P100</a></td>
 #   <td style="text-align: center">4</td>
 #   <td style="text-align: center">Tesla P100</td>
 #   <td style="text-align: center">56</td>
 #   <td style="text-align: right; background-color: #EBF5FF">17,100</td>
-#   <td style="text-align: right; background-color: #EBF5FF">14,500,000</td>
-#   <td style="text-align: right; background-color: #EBF5FF">31,300,000</td>
-#   <td style="text-align: right; background-color: #EBF5FF">3,620,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">?00,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">?,000,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">35,700,000,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">15,000,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">31,000,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">3,600,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">62,400,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">124,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">34,700,000,000</td>
 # </tr>
 # <tr>
 #   <td><a href="https://mybinder.org/v2/gh/hhoppe/poker_hand/main?urlpath=lab/tree/poker_hand.ipynb"><b>mybinder</b></a></td>
@@ -127,11 +127,11 @@
 #   <td style="text-align: center">None</td>
 #   <td style="text-align: center">-</td>
 #   <td style="text-align: right; background-color: #EBF5FF">18,200</td>
-#   <td style="text-align: right; background-color: #EBF5FF">7,050,000</td>
-#   <td style="text-align: right; background-color: #EBF5FF">3,220,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">7,100,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">3,200,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">-</td>
-#   <td style="text-align: right; background-color: #F0FDF4">?00,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">?,000,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">23,500,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">9,600,000</td>
 #   <td style="text-align: right; background-color: #F0FDF4">-</td>
 # </tr>
 # <tr>
@@ -139,18 +139,18 @@
 #   <td style="text-align: center">8</td>
 #   <td style="text-align: center">None</td>
 #   <td style="text-align: center">-</td>
-#   <td style="text-align: right; background-color: #EBF5FF">18,700</td>
-#   <td style="text-align: right; background-color: #EBF5FF">22,400,000</td>
-#   <td style="text-align: right; background-color: #EBF5FF">12,600,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">16,600</td>
+#   <td style="text-align: right; background-color: #EBF5FF">23,700,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">12,900,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">-</td>
-#   <td style="text-align: right; background-color: #F0FDF4">?00,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">?,000,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">72,300,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">47,500,000</td>
 #   <td style="text-align: right; background-color: #F0FDF4">-</td>
 # </tr>
 # </table>
 
 # %% [markdown]
-# It is puzzling that the CUDA rate is lower on my PC than on the online servers.
+# It is puzzling that the CUDA rate is lower on my PC than on the online servers.  The GeForce may have worse uint64 throughput?
 
 # %% [markdown]
 # ## Imports
@@ -894,7 +894,7 @@ compare_simulations(base_num_hands=10**7)
 # 135k, 33m, 350m, 2200-3400m, 135k, 890k, 8000-12500m
 
 # %%
-if 0:
+if 1:
   if cuda.is_available():
     simulate_poker_hands(10**12, 'bitmask_gpu_cuda', simulate_hands_bitmask_gpu_cuda)
 
