@@ -353,3 +353,8 @@ print(count_bits(np.int8(0b101101)))  # Output: 4
 # %%
 print(count_bits.inspect_asm().keys())
 print([str[:400] for str in count_bits.inspect_asm().values()])
+
+# %%
+assert ROYAL_STRAIGHT_RANK_MASK == int(
+    sum(8 ** np.arange(NUM_RANKS - CARDS_FOR_A_STRAIGHT, NUM_RANKS, dtype=np.uint64))
+)
