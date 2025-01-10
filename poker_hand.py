@@ -304,7 +304,7 @@ def report_cuda_kernel_properties(function: Callable[..., Any]) -> None:
 
 
 # %%
-def outcome_of_hand_array_python(cards: Any, ranks: Any, freqs: Any) -> int:
+def outcome_of_hand_array_python(cards: Any, ranks: Any, freqs: Any) -> Outcome:
   """Evaluate 5-card poker hand and return outcome ranking, using array data structures.
 
   Args:
@@ -362,23 +362,23 @@ def outcome_of_hand_array_python(cards: Any, ranks: Any, freqs: Any) -> int:
 
   if is_flush and is_straight:
     if ranks[0] == 8:
-      return Outcome.ROYAL_FLUSH.value
-    return Outcome.STRAIGHT_FLUSH.value
+      return Outcome.ROYAL_FLUSH
+    return Outcome.STRAIGHT_FLUSH
   if max_freq == 4:
-    return Outcome.FOUR_OF_A_KIND.value
+    return Outcome.FOUR_OF_A_KIND
   if max_freq == 3 and num_pairs > 0:
-    return Outcome.FULL_HOUSE.value
+    return Outcome.FULL_HOUSE
   if is_flush:
-    return Outcome.FLUSH.value
+    return Outcome.FLUSH
   if is_straight:
-    return Outcome.STRAIGHT.value
+    return Outcome.STRAIGHT
   if max_freq == 3:
-    return Outcome.THREE_OF_A_KIND.value
+    return Outcome.THREE_OF_A_KIND
   if max_freq == 2:
     if num_pairs == 2:
-      return Outcome.TWO_PAIR.value
-    return Outcome.ONE_PAIR.value
-  return Outcome.HIGH_CARD.value
+      return Outcome.TWO_PAIR
+    return Outcome.ONE_PAIR
+  return Outcome.HIGH_CARD
 
 
 # %%
@@ -407,7 +407,7 @@ def make_compute_array_cpu(outcome_of_hand_array):
         for hand_index in range(HANDS_PER_DECK):
           hand = deck[hand_index : hand_index + 5]
           outcome = outcome_of_hand_array(hand, ranks, freqs)
-          tally[outcome] += 1
+          tally[outcome.value] += 1
     return tally / (num_decks * HANDS_PER_DECK)
 
   return compute_array_cpu
@@ -611,11 +611,11 @@ def determine_straight(rank_count_mask: numba.uint64) -> bool:
 
 
 # %%
-def make_outcome_of_hand_bitmask(for_cuda: bool) -> Callable[[numba.uint64], numba.uint8]:
+def make_outcome_of_hand_bitmask(for_cuda: bool) -> Callable[[numba.uint64], Outcome]:
   """Factory returning a function for numba or cuda evaluation."""
   popc = gpu_popc if for_cuda else cpu_popc
 
-  def outcome_of_hand_bitmask(bitmask_sum: numba.uint64) -> numba.uint8:
+  def outcome_of_hand_bitmask(bitmask_sum: numba.uint64) -> Outcome:
     """Evaluate 5-card poker hand and return outcome ranking, using sum of card bitmasks."""
     # pylint: disable=too-many-function-args
     suit_count_mask = numba.uint32(bitmask_sum >> CARD_COUNT_BITS * NUM_RANKS)
@@ -630,23 +630,23 @@ def make_outcome_of_hand_bitmask(for_cuda: bool) -> Callable[[numba.uint64], num
 
     if is_flush and is_straight:
       if rank_count_mask == ROYAL_STRAIGHT_RANK_MASK:
-        return Outcome.ROYAL_FLUSH.value
-      return Outcome.STRAIGHT_FLUSH.value
+        return Outcome.ROYAL_FLUSH
+      return Outcome.STRAIGHT_FLUSH
     if is_four:
-      return Outcome.FOUR_OF_A_KIND.value
+      return Outcome.FOUR_OF_A_KIND
     if is_three and num_two_or_more > 1:
-      return Outcome.FULL_HOUSE.value
+      return Outcome.FULL_HOUSE
     if is_flush:
-      return Outcome.FLUSH.value
+      return Outcome.FLUSH
     if is_straight:
-      return Outcome.STRAIGHT.value
+      return Outcome.STRAIGHT
     if is_three:
-      return Outcome.THREE_OF_A_KIND.value
+      return Outcome.THREE_OF_A_KIND
     if num_two_or_more == 2:
-      return Outcome.TWO_PAIR.value
+      return Outcome.TWO_PAIR
     if num_two_or_more == 1:
-      return Outcome.ONE_PAIR.value
-    return Outcome.HIGH_CARD.value
+      return Outcome.ONE_PAIR
+    return Outcome.HIGH_CARD
 
   return outcome_of_hand_bitmask
 
@@ -680,7 +680,7 @@ def simulate_hands_bitmask_cpu_numba(num_decks: int, rng: np.random.Generator) -
         mask4 = mask_of_card(deck[hand_index + 4])
         bitmask_sum += mask4
         outcome = outcome_of_hand_bitmask_numba(bitmask_sum)
-        tally[outcome] += 1
+        tally[outcome.value] += 1
         bitmask_sum -= mask0
         mask0, mask1, mask2, mask3 = mask1, mask2, mask3, mask4
 
@@ -763,7 +763,7 @@ def gpu_bitmask(rng_states, num_decks_per_thread, global_tally):
     for hand_index in range(numba.int32(HANDS_PER_DECK)):
       mask4 = mask_of_card(deck[hand_index + 4])
       bitmask_sum += mask4
-      outcome = numba.int32(outcome_of_hand_bitmask_cuda(bitmask_sum))
+      outcome = numba.int32(outcome_of_hand_bitmask_cuda(bitmask_sum).value)
       tally[outcome] += 1
       bitmask_sum -= mask0
       mask0, mask1, mask2, mask3 = mask1, mask2, mask3, mask4
