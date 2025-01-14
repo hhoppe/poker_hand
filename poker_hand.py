@@ -175,10 +175,11 @@ import numba
 from numba import cuda
 import numba.cuda.random
 import numpy as np
+import numpy.typing
 import random32
 
 # %%
-_NDArray = np.ndarray[Any, Any]
+_NDArray = numpy.typing.NDArray[Any]
 # mypy: disable-error-code="no-any-return"
 _CudaArray = Any  # cuda.cudadrv.devicearray.DeviceNDArray
 _F = typing.TypeVar('_F', bound=Callable[..., Any])
@@ -302,9 +303,9 @@ def gpu_popc(x: int) -> int:
 
 
 # %%
-def write_numba_assembly_code(function: Any, filename: str) -> None:
+def write_numba_assembly_code(function: Callable[..., Any], filename: str) -> None:
   """Write the asm or ptx code for a numba function to an output file."""
-  (asm_or_ptx,) = function.inspect_asm().values()
+  (asm_or_ptx,) = function.inspect_asm().values()  # type: ignore[attr-defined]
   pathlib.Path(filename).write_text(asm_or_ptx, encoding='utf-8')
 
 
@@ -901,7 +902,11 @@ COMPLEXITY_ADJUSTMENT = {
 
 
 # %%
-def simulate_poker_hands(desired_num_hands: int, func_name: str, func: Any) -> None:
+def simulate_poker_hands(
+    desired_num_hands: int,
+    func_name: str,
+    func: Callable[[int, np.random.Generator], Probabilities],
+) -> None:
   """Report hand probabilities and timings using a particular approach."""
   num_decks = math.ceil(desired_num_hands / HANDS_PER_DECK)
   num_hands = num_decks * HANDS_PER_DECK
