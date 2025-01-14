@@ -1,14 +1,22 @@
-# Adaptation of https://github.com/numba/numba/blob/main/numba/cuda/random.py to use uint32.
+# Adaptation of https://github.com/numba/numba/blob/main/numba/cuda/random.py to:
+# - Use four uint32 instead of two uint64.
+# - Allow access to uint32.
+# - Allow rng state to be stored in four registers.
 
 # See http://prng.di.unimi.it/xoshiro128plus.c  -- xoshiro128+.
 # 2018 by David Blackman and Sebastiano Vigna (vigna@acm.org)
 # "xoshiro128+ 1.0, our best and fastest 32-bit generator for 32-bit floating-point numbers".
 
 import math
+from typing import Any
 
 from numba import (config, cuda, float32, uint32, int32, from_dtype, jit)
-
 import numpy as np
+
+_CudaArray = Any  # cuda.cudadrv.devicearray.DeviceNDArray
+
+# Untyped decorator makes function untyped.
+# mypy: disable-error-code="misc"
 
 # This implementation is based upon the xoshiro128+ algorithm described at:
 #     http://xoroshiro.di.unimi.it/
@@ -28,7 +36,7 @@ xoshiro128p_type = from_dtype(xoshiro128p_dtype)
 
 
 @jit(forceobj=_forceobj, looplift=_looplift, nopython=_nopython)
-def rotl(x, k):
+def rotl(x: uint32, k: uint32) -> uint32:
   """Left rotate x by k bits."""
   x = uint32(x)
   k = uint32(k)
@@ -36,7 +44,7 @@ def rotl(x, k):
 
 
 @jit(forceobj=_forceobj, looplift=_looplift, nopython=_nopython)
-def init_xoshiro128p_state(states, index, seed):
+def init_xoshiro128p_state(states: _CudaArray, index: int32, seed: uint32) -> None:
   """Initialize xoshiro128+ state from a 32-bit seed using SplitMix32.
 
   Args:
@@ -63,7 +71,7 @@ def init_xoshiro128p_state(states, index, seed):
 
 
 @jit(forceobj=_forceobj, looplift=_looplift, nopython=_nopython)
-def xoshiro128p_next(states, index):
+def xoshiro128p_next(states: _CudaArray, index: int32) -> uint32:
   """Return the next random uint32 and advance the RNG in states[index].
 
   Args:
@@ -90,7 +98,9 @@ def xoshiro128p_next(states, index):
 
 
 @jit(forceobj=_forceobj, looplift=_looplift, nopython=_nopython)
-def xoshiro128p_next_raw(s0, s1, s2, s3):
+def xoshiro128p_next_raw(
+    s0: uint32, s1: uint32, s2: uint32, s3: uint32
+) -> tuple[uint32, uint32, uint32, uint32, uint32]:
   """Return the next random uint32 and updated state values.
 
   Args:
@@ -114,7 +124,7 @@ def xoshiro128p_next_raw(s0, s1, s2, s3):
 
 
 @jit(forceobj=_forceobj, looplift=_looplift, nopython=_nopython)
-def xoshiro128p_jump(states, index):
+def xoshiro128p_jump(states: _CudaArray, index: int32) -> None:
   """Advance the RNG in states[index] by 2^64 steps.
 
   Args:
@@ -146,14 +156,14 @@ def xoshiro128p_jump(states, index):
 
 
 @jit(forceobj=_forceobj, looplift=_looplift, nopython=_nopython)
-def uint32_to_unit_float32(x):
+def uint32_to_unit_float32(x: uint32) -> float32:
   """Convert uint32 to float32 value in the range [0.0, 1.0)."""
   x = uint32(x)
   return float32(x >> uint32(8)) * float32(1.0 / (1 << 24))
 
 
 @jit(forceobj=_forceobj, looplift=_looplift, nopython=_nopython)
-def xoshiro128p_uniform_float32(states, index):
+def xoshiro128p_uniform_float32(states: _CudaArray, index: int32) -> float32:
   """Return a float32 in range [0.0, 1.0) and advance states[index].
 
   Args:
@@ -171,7 +181,7 @@ TWO_PI_FLOAT32 = float32(2 * math.pi)
 
 
 @jit(forceobj=_forceobj, looplift=_looplift, nopython=_nopython)
-def xoshiro128p_normal_float32(states, index):
+def xoshiro128p_normal_float32(states: _CudaArray, index: int32) -> float32:
   """Return a normally distributed float32 and advance states[index].
 
   The return value is drawn from a Gaussian of mean=0 and sigma=1 using the
@@ -193,7 +203,9 @@ def xoshiro128p_normal_float32(states, index):
 
 
 @jit(forceobj=_forceobj, looplift=_looplift, nopython=_nopython)
-def init_xoshiro128p_states_cpu(states, seed, subsequence_start):
+def init_xoshiro128p_states_cpu(
+    states: _CudaArray, seed: uint32, subsequence_start: uint32
+) -> None:
   """Initialize RNG states on CPU for parallel generators."""
   n = states.shape[0]
   seed = uint32(seed)
@@ -212,7 +224,9 @@ def init_xoshiro128p_states_cpu(states, seed, subsequence_start):
       xoshiro128p_jump(states, i)  # Jump forward 2^64 steps.
 
 
-def init_xoshiro128p_states(states, seed, subsequence_start=0, stream=0):
+def init_xoshiro128p_states(
+    states: _CudaArray, seed: uint32, subsequence_start: uint32 = 0, stream: int = 0
+) -> None:
   """Initialize RNG states on the GPU for parallel generators.
 
   This initializes the RNG states so that each state in the array corresponds to subsequences separated
@@ -232,8 +246,10 @@ def init_xoshiro128p_states(states, seed, subsequence_start=0, stream=0):
   states.copy_to_device(states_cpu, stream=stream)
 
 
-def create_xoshiro128p_states(n, seed, subsequence_start=0, stream=0):
-  """Returns a new device array initialized for n random number generators.
+def create_xoshiro128p_states(
+    n: int, seed: uint32, subsequence_start: uint32 = 0, stream: int = 0
+) -> _CudaArray:
+  """Return a new device array initialized for n random number generators.
 
   This initializes the RNG states so that each state in the array corresponds to subsequences separated
   by 2^64 steps from each other in the main sequence. Therefore, as long no CUDA thread requests more

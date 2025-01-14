@@ -8,8 +8,7 @@ recursive = true
 [tool.mypy]
 exclude = "^Other"
 ignore_missing_imports = true
-strict = false
-check_untyped_defs = true
+strict = true
 
 [tool.pyink]
 pyink-indentation = 2
@@ -25,7 +24,7 @@ disable = [
     "too-many-lines", "too-few-public-methods", "too-many-arguments", "too-many-locals",
     "use-dict-literal", "unnecessary-lambda-assignment",
     # Local:
-    "missing-function-docstring", "too-many-return-statements", "too-many-branches",
+    "too-many-return-statements", "too-many-branches",
     "missing-module-docstring",
 ]
 reports = false

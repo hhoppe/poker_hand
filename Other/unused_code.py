@@ -106,7 +106,7 @@ ROYAL_STRAIGHT_RANKS = 0b1111100000000
 rank_present = numba.uint16(get_ranks_present(rank_count_mask))  # Valid only if not is_four.
 
 if (rank_present & ROYAL_STRAIGHT_RANKS) != 0:
-  return Outcome.ROYAL_FLUSH.value
+  return Outcome.ROYAL_FLUSH
 
 # %%
 import numba.cpython.mathimpl
