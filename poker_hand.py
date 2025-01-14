@@ -647,9 +647,9 @@ def make_outcome_of_hand_bitmask(for_cuda: bool) -> Callable[[numba.uint64], Out
   def outcome_of_hand_bitmask(bitmask_sum: numba.uint64) -> Outcome:
     """Evaluate 5-card poker hand and return outcome ranking, using sum of card bitmasks."""
     # pylint: disable=too-many-function-args
-    uint32 = numba.uint32
+    uint32, uint64 = numba.uint32, numba.uint64
     suit_count_mask = uint32(bitmask_sum >> CARD_COUNT_BITS * NUM_RANKS)
-    rank_count_mask = numba.uint64(bitmask_sum & (2 ** (CARD_COUNT_BITS * NUM_RANKS) - 1))
+    rank_count_mask = uint64(bitmask_sum & (2 ** (CARD_COUNT_BITS * NUM_RANKS) - 1))
 
     is_flush = popc(uint32(suit_count_mask & (suit_count_mask >> 2) & SUITS_ONE)) != 0
     is_straight = determine_straight(rank_count_mask)
@@ -809,7 +809,7 @@ def gpu_bitmask(rng_states: _CudaArray, decks_per_thread: int, global_tally: _Cu
       # mask4 = mask_of_card(deck[hand_index + 4])
       mask4 = mask_of_card(deck[card_index])
       bitmask_sum += mask4
-      outcome = int32(outcome_of_hand_bitmask_cuda(bitmask_sum).value)
+      outcome = uint32(outcome_of_hand_bitmask_cuda(bitmask_sum).value)
       tally[outcome] += 1
       bitmask_sum -= mask0
       mask0, mask1, mask2, mask3 = mask1, mask2, mask3, mask4
@@ -822,7 +822,7 @@ def gpu_bitmask(rng_states: _CudaArray, decks_per_thread: int, global_tally: _Cu
 
   # First do a sum reduction within the 32 lanes of each warp (still at 32-bit precision).
   for i in range(NUM_OUTCOMES):
-    value = block_tally[i, thread_id]
+    value = tally[i]
     for offset in [16, 8, 4, 2, 1]:
       value += cuda.shfl_down_sync(0xFFFFFFFF, value, offset)
     if cuda.laneid == 0:
