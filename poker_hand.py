@@ -23,12 +23,13 @@
 # <table style="margin-left: 0">
 # <tr>
 #   <th colspan="4"></th>
-#   <th colspan="7" style="text-align: center">Simulation rates (hands/s)</th>
+#   <th colspan="8" style="text-align: center; background-color: #F4F4F4">Simulation rates (hands/s)</th>
 # </tr>
 # <tr>
 #   <th colspan="4">Compute capabilities</th>
 #   <th colspan="4" style="text-align: center; background-color: #EBF5FF">Array-based</th>
-#   <th colspan="3" style="text-align: center; background-color: #F0FDF4">Bitmask-based</th>
+#   <th colspan="3" style="text-align: center; background-color: #F0FDF4">Bitcount-based</th>
+#   <th colspan="1" style="text-align: center; background-color: #FFF8F4">Deckmask-based</th>
 # </tr>
 # <tr>
 #   <th>Platform</th>
@@ -42,6 +43,7 @@
 #   <th style="background-color: #F0FDF4">Numba</th>
 #   <th style="background-color: #F0FDF4">Multiprocess</th>
 #   <th style="background-color: #F0FDF4">CUDA</th>
+#   <th style="background-color: #FFF8F4">CUDA</th>
 # </tr>
 # <tr>
 #   <td><b>My PC</b> Win10</td>
@@ -55,6 +57,7 @@
 #   <td style="text-align: right; background-color: #F0FDF4">125,000,000</td>
 #   <td style="text-align: right; background-color: #F0FDF4">-</td>
 #   <td style="text-align: right; background-color: #F0FDF4">12,200,000,000</td>
+#   <td style="text-align: right; background-color: #FFF8F4">?,200,000,000</td>
 # </tr>
 # <tr>
 #   <td><b>My PC</b> WSL2</td>
@@ -64,14 +67,15 @@
 #   <td style="text-align: right; background-color: #EBF5FF">135,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">33,000,000</td>
 #   <td style="text-align: right; background-color: #EBF5FF">350,000,000</td>
-#   <td style="text-align: right; background-color: #EBF5FF">2,800,000,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">16,500,000,000</td>
 #   <td style="text-align: right; background-color: #F0FDF4">138,000,000</td>
 #   <td style="text-align: right; background-color: #F0FDF4">912,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">12,400,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">70,000,000,000</td>
+#   <td style="text-align: right; background-color: #FFF8F4">148,000,000,000</td>
 # </tr>
 # <tr>
 #   <td><b>Marcel PC</b> Win</td>
-#   <td style="text-align: center">24</td>
+#   <td style="text-align: center">40</td>
 #   <td style="text-align: center">Titan V</td>
 #   <td style="text-align: center">80</td>
 #   <td style="text-align: right; background-color: #EBF5FF"><s>62,800</s></td>
@@ -81,6 +85,7 @@
 #   <td style="text-align: right; background-color: #F0FDF4">?00,000,000</td>
 #   <td style="text-align: right; background-color: #F0FDF4">-</td>
 #   <td style="text-align: right; background-color: #F0FDF4">?,000,000,000</td>
+#   <td style="text-align: right; background-color: #FFF8F4">?,000,000,000</td>
 # </tr>
 # <tr>
 #   <td><a href="https://colab.research.google.com/github/hhoppe/poker_hand/blob/main/poker_hand.ipynb"><b>Colab</b> T4</a></td>
@@ -94,6 +99,7 @@
 #   <td style="text-align: right; background-color: #F0FDF4">60,000,000</td>
 #   <td style="text-align: right; background-color: #F0FDF4">63,000,000</td>
 #   <td style="text-align: right; background-color: #F0FDF4">32,200,000,000</td>
+#   <td style="text-align: right; background-color: #FFF8F4">32,200,000,000</td>
 # </tr>
 # <tr>
 #   <td><a href="https://www.kaggle.com/notebooks/welcome?src=https://github.com/hhoppe/poker_hand/blob/main/poker_hand.ipynb"><b>Kaggle</b> T4</a></td>
@@ -107,6 +113,7 @@
 #   <td style="text-align: right; background-color: #F0FDF4">61,600,000</td>
 #   <td style="text-align: right; background-color: #F0FDF4">117,000,000</td>
 #   <td style="text-align: right; background-color: #F0FDF4">31,800,000,000</td>
+#   <td style="text-align: right; background-color: #FFF8F4">31,800,000,000</td>
 # </tr>
 # <tr>
 #   <td><a href="https://www.kaggle.com/notebooks/welcome?src=https://github.com/hhoppe/poker_hand/blob/main/poker_hand.ipynb"><b>Kaggle</b> P100</a></td>
@@ -120,9 +127,10 @@
 #   <td style="text-align: right; background-color: #F0FDF4">62,400,000</td>
 #   <td style="text-align: right; background-color: #F0FDF4">124,000,000</td>
 #   <td style="text-align: right; background-color: #F0FDF4">34,700,000,000</td>
+#   <td style="text-align: right; background-color: #FFF8F4">34,700,000,000</td>
 # </tr>
 # <tr>
-#   <td><a href="https://mybinder.org/v2/gh/hhoppe/poker_hand/main?urlpath=lab/tree/poker_hand.ipynb"><b>mybinder</b></a></td>
+#   <td><a href="https://mybinder.org/v2/gh/hhoppe/poker_hand/main?urlpath=lab/tree/poker_hand.ipynb"><b>Mybinder</b></a></td>
 #   <td style="text-align: center">72</td>
 #   <td style="text-align: center">None</td>
 #   <td style="text-align: center">-</td>
@@ -133,9 +141,10 @@
 #   <td style="text-align: right; background-color: #F0FDF4">23,500,000</td>
 #   <td style="text-align: right; background-color: #F0FDF4">9,600,000</td>
 #   <td style="text-align: right; background-color: #F0FDF4">-</td>
+#   <td style="text-align: right; background-color: #FFF8F4">-</td>
 # </tr>
 # <tr>
-#   <td><a href="https://deepnote.com/launch?url=https%3A%2F%2Fgithub.com%2Fhhoppe%2Fpoker_hand%2Fblob%2Fmain%2Fpoker_hand.ipynb"><b>deepnote</b></a></td>
+#   <td><a href="https://deepnote.com/launch?url=https%3A%2F%2Fgithub.com%2Fhhoppe%2Fpoker_hand%2Fblob%2Fmain%2Fpoker_hand.ipynb"><b>Deepnote</b></a></td>
 #   <td style="text-align: center">8</td>
 #   <td style="text-align: center">None</td>
 #   <td style="text-align: center">-</td>
@@ -146,6 +155,7 @@
 #   <td style="text-align: right; background-color: #F0FDF4">72,300,000</td>
 #   <td style="text-align: right; background-color: #F0FDF4">47,500,000</td>
 #   <td style="text-align: right; background-color: #F0FDF4">-</td>
+#   <td style="text-align: right; background-color: #FFF8F4">-</td>
 # </tr>
 # </table>
 
@@ -176,25 +186,15 @@ from numba import cuda
 import numba.cuda.random
 import numpy as np
 import numpy.typing
-import random32
+import random32  # Replacement for https://github.com/numba/numba/blob/main/numba/cuda/random.py
+
+# %%
+# mypy: disable-error-code="no-any-return"
 
 # %%
 _NDArray = numpy.typing.NDArray[Any]
-# mypy: disable-error-code="no-any-return"
 _CudaArray = Any  # cuda.cudadrv.devicearray.DeviceNDArray
 _F = typing.TypeVar('_F', bound=Callable[..., Any])
-
-# %%
-USE_RANDOM32 = True
-if USE_RANDOM32:
-  random_create_states = random32.create_xoshiro128p_states
-  random_next_uniform_uint = random32.xoshiro128p_next
-  random_next_uniform_float32 = random32.xoshiro128p_uniform_float32
-else:
-  # See https://github.com/numba/numba/blob/main/numba/cuda/random.py
-  random_create_states = cuda.random.create_xoroshiro128p_states
-  random_next_uniform_uint = cuda.random.xoroshiro128p_next
-  random_next_uniform_float32 = cuda.random.xoroshiro128p_uniform_float32
 
 # %% [markdown]
 # ## Compute capabilities
@@ -272,7 +272,6 @@ def numba_njit(*args: Any, **kwargs: Any) -> Callable[[_F], _F]:
 
 
 # %%
-@numba.extending.intrinsic  # type: ignore[misc]
 def popc_helper(typing_context: Any, src: Any) -> Any:
   """Helper function to enable the intrinsic CPU instruction `popc()`."""
   del typing_context
@@ -289,10 +288,13 @@ def popc_helper(typing_context: Any, src: Any) -> Any:
   return src(src), codegen
 
 
+popc_intrinsic: Callable[[int], int] = numba.extending.intrinsic(popc_helper)
+
+
 @numba_njit(inline='always')
 def cpu_popc(x: int) -> int:  # https://stackoverflow.com/a/77103233
   """Return the ("population") count of set bits in an integer, using a CPU intrinsic."""
-  return popc_helper(x)  # pylint: disable=no-value-for-parameter
+  return popc_intrinsic(x)
 
 
 # %%
@@ -319,7 +321,12 @@ def report_cuda_kernel_properties(function: Callable[..., Any]) -> None:
 
 
 # %% [markdown]
-# ## Approach 1: arrays
+# ## Approach 1: card arrays
+
+# %% [markdown]
+# We represent a card as a 6-bit integer in `range(52)`, with the suit `range(4)` in the 2 lsb and the rank `range(13)` in the top 4 msb.
+#
+# A hand is a tuple of five such integers.
 
 # %% [markdown]
 # ### Hand evaluation
@@ -520,15 +527,21 @@ def gpu_array(rng_states: _CudaArray, decks_per_thread: int, global_tally: _Cuda
 
   for _ in range(int32(decks_per_thread)):
     # Apply Fisher-Yates shuffle to current deck.
-    for i in range(int32(51), int32(0), int32(-1)):
-      random_uint = random_next_uniform_uint(rng_states, thread_index)
+    # for i in range(int32(51), int32(0), int32(-1)):
+    i = uint32(51)
+    while i > 0:
+      random_uint = random32.xoshiro128p_next(rng_states, thread_index)
       j = random_uint % uint32(i + 1)
       deck[i], deck[j] = deck[j], deck[i]
+      i = uint32(i - 1)
 
-    for hand_index in range(int32(HANDS_PER_DECK)):
+    # for hand_index in range(HANDS_PER_DECK):
+    hand_index = uint32(0)
+    while hand_index < HANDS_PER_DECK:
       hand = deck[hand_index : hand_index + 5]
-      outcome = int32(outcome_of_hand_array_numba(hand, ranks, freqs))
+      outcome = uint32(outcome_of_hand_array_numba(hand, ranks, freqs))
       tally[outcome] += 1
+      hand_index = uint32(hand_index + 1)
 
   # First accumulate a per-block tally, then accumulate that tally into the global tally.
   shared_tally = cuda.shared.array(NUM_OUTCOMES, np.int64)  # Per-block intermediate tally.
@@ -550,14 +563,14 @@ def gpu_array(rng_states: _CudaArray, decks_per_thread: int, global_tally: _Cuda
 def simulate_hands_array_gpu_cuda(num_decks: int, rng: np.random.Generator) -> Probabilities:
   """Compute hand probabilities using an array approach by invoking a CUDA kernel."""
   device = cuda.get_current_device()
-  # Target enough threads for ~4 blocks per SM.
-  target_num_threads = 4 * device.MULTIPROCESSOR_COUNT * THREADS_PER_BLOCK
+  PARALLELISM = 8  # Number of blocks per SM.
+  target_num_threads = PARALLELISM * device.MULTIPROCESSOR_COUNT * THREADS_PER_BLOCK
   decks_per_thread = max(1, num_decks // target_num_threads)
   num_threads = num_decks // decks_per_thread
   # print(f'{decks_per_thread=} {num_threads=}')
   blocks = math.ceil(num_threads / THREADS_PER_BLOCK)
   seed = rng.integers(2**64, dtype=np.uint64)
-  d_rng_states = random_create_states(num_threads, seed)
+  d_rng_states = random32.create_xoshiro128p_states(num_threads, seed)
   d_global_tally = cuda.to_device(np.zeros(NUM_OUTCOMES, np.int64))
   gpu_array[blocks, THREADS_PER_BLOCK](d_rng_states, decks_per_thread, d_global_tally)
   return d_global_tally.copy_to_host() / (num_threads * decks_per_thread * HANDS_PER_DECK)
@@ -570,7 +583,7 @@ if cuda.is_available():
 # %%
 if cuda.is_available():
   print('Timing:')
-  # %timeit -n1 -r5 simulate_hands_array_gpu_cuda(10**7, RNG)  # ~220 ms.
+  # %timeit -n1 -r5 simulate_hands_array_gpu_cuda(2 * 10**7, RNG)  # ~250-400 ms.
 
 # %%
 if cuda.is_available():
@@ -578,8 +591,20 @@ if cuda.is_available():
   report_cuda_kernel_properties(gpu_array)
 
 # %% [markdown]
-# ## Approach 2: bitmasks
+# ## Approach 2: suit/rank bitcounts
 
+
+# %% [markdown]
+# We represent a (5-card) hand as a sequence of $4+13$ counts, each of size 3 bits.
+# The 3-bit counts encode:
+# - the number of cards in each of the 4 suits, and
+# - the number of cards of each of the 13 ranks (2,3,4,5,6,7,8,9,T,J,Q,K,A).
+#
+# Therefore each card is encoded as a 51-bit mask in which exactly **two bits** are set to 1,
+# in the corresponding suit and rank.
+#
+# The bitcounts for the five cards in a hand are combined using ordinary 64-bit addition,
+# relying on the fact that **no carry bits** will jump across the 3-bit triples because $5 < 2^3$.
 
 # %%
 # Thanks to Marcel Gavriliu for this approach of storing card bitmasks and summing them.
@@ -620,7 +645,7 @@ TABLE_STRAIGHTS_RANK_MASK = create_table_straights_rank_mask()
 
 # %%
 @numba_njit(inline='always')
-def mask_of_card(card: numba.uint8) -> numba.uint64:
+def bitcount_of_card(card: numba.uint8) -> numba.uint64:
   """Return a bitmask of 4*3 + 13*3 bits encoding the suit and rank of 0 <= `card` < 52."""
   suit_index = card & 0b11
   rank_index = card >> 2
@@ -641,16 +666,16 @@ def determine_straight(rank_count_mask: numba.uint64) -> bool:
 
 
 # %%
-def make_outcome_of_hand_bitmask(for_cuda: bool) -> Callable[[numba.uint64], Outcome]:
+def make_outcome_of_hand_bitcount(for_cuda: bool) -> Callable[[numba.uint64], Outcome]:
   """Factory returning a function for numba or cuda evaluation."""
   popc = gpu_popc if for_cuda else cpu_popc
 
-  def outcome_of_hand_bitmask(bitmask_sum: numba.uint64) -> Outcome:
-    """Evaluate 5-card poker hand and return outcome ranking, using sum of card bitmasks."""
+  def outcome_of_hand_bitcount(bitcount_sum: numba.uint64) -> Outcome:
+    """Evaluate 5-card poker hand and return outcome ranking, using sum of card bitcounts."""
     # pylint: disable=too-many-function-args
     uint32, uint64 = numba.uint32, numba.uint64
-    suit_count_mask = uint32(bitmask_sum >> CARD_COUNT_BITS * NUM_RANKS)
-    rank_count_mask = uint64(bitmask_sum & (2 ** (CARD_COUNT_BITS * NUM_RANKS) - 1))
+    suit_count_mask = uint32(bitcount_sum >> CARD_COUNT_BITS * NUM_RANKS)
+    rank_count_mask = uint64(bitcount_sum & (2 ** (CARD_COUNT_BITS * NUM_RANKS) - 1))
 
     is_flush = popc(uint32(suit_count_mask & (suit_count_mask >> 2) & SUITS_ONE)) != 0
     is_straight = determine_straight(rank_count_mask)
@@ -679,12 +704,12 @@ def make_outcome_of_hand_bitmask(for_cuda: bool) -> Callable[[numba.uint64], Out
       return Outcome.ONE_PAIR
     return Outcome.HIGH_CARD
 
-  return outcome_of_hand_bitmask
+  return outcome_of_hand_bitcount
 
 
 # %%
-outcome_of_hand_bitmask_numba = numba_njit()(make_outcome_of_hand_bitmask(for_cuda=False))
-outcome_of_hand_bitmask_cuda = numba_njit()(make_outcome_of_hand_bitmask(for_cuda=True))
+outcome_of_hand_bitcount_numba = numba_njit()(make_outcome_of_hand_bitcount(for_cuda=False))
+outcome_of_hand_bitcount_cuda = numba_njit()(make_outcome_of_hand_bitcount(for_cuda=True))
 
 
 # %% [markdown]
@@ -693,8 +718,8 @@ outcome_of_hand_bitmask_cuda = numba_njit()(make_outcome_of_hand_bitmask(for_cud
 
 # %%
 @numba_njit()
-def simulate_hands_bitmask_cpu_numba(num_decks: int, rng: np.random.Generator) -> Probabilities:
-  """Compute hand probabilities using a bitmask approach by invoking numba-jitted CPU code."""
+def simulate_hands_bitcount_cpu_numba(num_decks: int, rng: np.random.Generator) -> Probabilities:
+  """Compute hand probabilities using a bitcount approach by invoking numba-jitted CPU code."""
   BLOCK_SIZE = 10
   deck_block = np.empty((BLOCK_SIZE, DECK_SIZE), dtype=np.uint8)
   deck_block[:] = np.arange(DECK_SIZE, dtype=np.uint8)
@@ -705,50 +730,50 @@ def simulate_hands_bitmask_cpu_numba(num_decks: int, rng: np.random.Generator) -
 
     for deck_index in range(deck_index_start, min(deck_index_start + BLOCK_SIZE, num_decks)):
       deck = deck_block2[deck_index - deck_index_start]
-      mask0, mask1 = mask_of_card(deck[0]), mask_of_card(deck[1])
-      mask2, mask3 = mask_of_card(deck[2]), mask_of_card(deck[3])
-      bitmask_sum = mask0 + mask1 + mask2 + mask3
+      mask0, mask1 = bitcount_of_card(deck[0]), bitcount_of_card(deck[1])
+      mask2, mask3 = bitcount_of_card(deck[2]), bitcount_of_card(deck[3])
+      bitcount_sum = mask0 + mask1 + mask2 + mask3
 
       for hand_index in range(HANDS_PER_DECK):
-        mask4 = mask_of_card(deck[hand_index + 4])
-        bitmask_sum += mask4
-        outcome = outcome_of_hand_bitmask_numba(bitmask_sum)
+        mask4 = bitcount_of_card(deck[hand_index + 4])
+        bitcount_sum += mask4
+        outcome = outcome_of_hand_bitcount_numba(bitcount_sum)
         tally[outcome.value] += 1
-        bitmask_sum -= mask0
+        bitcount_sum -= mask0
         mask0, mask1, mask2, mask3 = mask1, mask2, mask3, mask4
 
   return tally / (num_decks * HANDS_PER_DECK)
 
 
 # %%
-# simulate_poker_hands(10**7, 'bitmask_cpu_numba', simulate_hands_bitmask_cpu_numba)  # ~130 m hands/s
+# simulate_poker_hands(10**7, 'bitcount_cpu_numba', simulate_hands_bitcount_cpu_numba)  # ~130 m hands/s
 
 # %%
-assert np.allclose(simulate_hands_bitmask_cpu_numba(10**5, RNG), EXPECTED_PROB, atol=0.002)
-
-
-# %%
-# %timeit -n2 -r2 simulate_hands_bitmask_cpu_numba(10**5, RNG)  # ~35 ms if low variance.
+assert np.allclose(simulate_hands_bitcount_cpu_numba(10**5, RNG), EXPECTED_PROB, atol=0.002)
 
 
 # %%
-def compute_bitmask_chunk(args: tuple[int, np.random.Generator]) -> Probabilities:
+# %timeit -n2 -r2 simulate_hands_bitcount_cpu_numba(10**5, RNG)  # ~35 ms if low variance.
+
+
+# %%
+def compute_bitcount_chunk(args: tuple[int, np.random.Generator]) -> Probabilities:
   """Helper function for multiprocessing."""
   num_decks, rng = args
-  return simulate_hands_bitmask_cpu_numba(num_decks, rng)
+  return simulate_hands_bitcount_cpu_numba(num_decks, rng)
 
 
 # %%
-def simulate_hands_bitmask_cpu_numba_multiprocess(
+def simulate_hands_bitcount_cpu_numba_multiprocess(
     num_decks: int, rng: np.random.Generator
 ) -> Probabilities:
-  """Compute hand probabilities using a bitmask approach and multiprocessing."""
+  """Compute hand probabilities using a bitcount approach and multiprocessing."""
   num_processes = multiprocessing.cpu_count()
   chunk_num_decks = math.ceil(num_decks / num_processes)
   new_rngs = rng.spawn(num_processes)
   chunks = [(chunk_num_decks, new_rng) for new_rng in new_rngs]
   with multiprocessing.get_context('fork').Pool(num_processes) as pool:
-    results = pool.map(compute_bitmask_chunk, chunks)
+    results = pool.map(compute_bitcount_chunk, chunks)
   return np.mean(results, axis=0)
 
 
@@ -758,8 +783,8 @@ def simulate_hands_bitmask_cpu_numba_multiprocess(
 
 # %%
 @cuda.jit(fastmath=True)  # type: ignore[misc]
-def gpu_bitmask(rng_states: _CudaArray, decks_per_thread: int, global_tally: _CudaArray) -> None:
-  """CUDA kernel to compute hand probabilities using a bitmask approach."""
+def gpu_bitcount(rng_states: _CudaArray, decks_per_thread: int, global_tally: _CudaArray) -> None:
+  """CUDA kernel to compute hand probabilities using a bitcount approach."""
   # pylint: disable=too-many-function-args, no-value-for-parameter, comparison-with-callable
   int32, uint32, float32 = numba.int32, numba.uint32, numba.float32
   thread_index = cuda.grid(1)
@@ -800,19 +825,19 @@ def gpu_bitmask(rng_states: _CudaArray, decks_per_thread: int, global_tally: _Cu
       deck[i], deck[j] = deck[j], deck[i]
       i = uint32(i - 1)
 
-    mask0, mask1 = mask_of_card(deck[0]), mask_of_card(deck[1])
-    mask2, mask3 = mask_of_card(deck[2]), mask_of_card(deck[3])
-    bitmask_sum = mask0 + mask1 + mask2 + mask3
+    mask0, mask1 = bitcount_of_card(deck[0]), bitcount_of_card(deck[1])
+    mask2, mask3 = bitcount_of_card(deck[2]), bitcount_of_card(deck[3])
+    bitcount_sum = mask0 + mask1 + mask2 + mask3
 
     # for hand_index in range(int32(HANDS_PER_DECK)):
     card_index = uint32(4)
     while card_index < uint32(DECK_SIZE):
-      # mask4 = mask_of_card(deck[hand_index + 4])
-      mask4 = mask_of_card(deck[card_index])
-      bitmask_sum += mask4
-      outcome = uint32(outcome_of_hand_bitmask_cuda(bitmask_sum).value)
+      # mask4 = bitcount_of_card(deck[hand_index + 4])
+      mask4 = bitcount_of_card(deck[card_index])
+      bitcount_sum += mask4
+      outcome = uint32(outcome_of_hand_bitcount_cuda(bitcount_sum).value)
       tally[outcome] += 1
-      bitmask_sum -= mask0
+      bitcount_sum -= mask0
       mask0, mask1, mask2, mask3 = mask1, mask2, mask3, mask4
       card_index = uint32(card_index + 1)
 
@@ -837,11 +862,11 @@ def gpu_bitmask(rng_states: _CudaArray, decks_per_thread: int, global_tally: _Cu
 
 
 # %%
-def simulate_hands_bitmask_gpu_cuda(num_decks: int, rng: np.random.Generator) -> Probabilities:
-  """Compute hand probabilities using a bitmask approach by invoking a CUDA kernel."""
+def simulate_hands_bitcount_gpu_cuda(num_decks: int, rng: np.random.Generator) -> Probabilities:
+  """Compute hand probabilities using a bitcount approach by invoking a CUDA kernel."""
   device = cuda.get_current_device()
-  # Target enough threads for ~4 blocks per SM.
-  target_num_threads = 4 * device.MULTIPROCESSOR_COUNT * THREADS_PER_BLOCK
+  PARALLELISM = 8  # Number of blocks per SM.
+  target_num_threads = PARALLELISM * device.MULTIPROCESSOR_COUNT * THREADS_PER_BLOCK
   decks_per_thread = max(1, num_decks // target_num_threads)
   num_threads = num_decks // decks_per_thread
   # print(f'{decks_per_thread=} {num_threads=}')
@@ -849,26 +874,180 @@ def simulate_hands_bitmask_gpu_cuda(num_decks: int, rng: np.random.Generator) ->
   seed = rng.integers(2**64, dtype=np.uint64)
   d_rng_states = random32.create_xoshiro128p_states(num_threads, seed)
   d_global_tally = cuda.to_device(np.zeros(NUM_OUTCOMES, np.int64))
-  gpu_bitmask[blocks, THREADS_PER_BLOCK](d_rng_states, decks_per_thread, d_global_tally)
+  gpu_bitcount[blocks, THREADS_PER_BLOCK](d_rng_states, decks_per_thread, d_global_tally)
   return d_global_tally.copy_to_host() / (num_threads * decks_per_thread * HANDS_PER_DECK)
 
 
 # %%
-# simulate_poker_hands(10**9, 'bitmask_gpu_cuda', simulate_hands_bitmask_gpu_cuda)  # ~9-11 G hands/s.
+# simulate_poker_hands(10**9, 'bitcount_gpu_cuda', simulate_hands_bitcount_gpu_cuda)  # ~9-11 G hands/s.
 
 # %%
 if cuda.is_available():
-  assert np.allclose(simulate_hands_bitmask_gpu_cuda(10**7, RNG), EXPECTED_PROB, atol=0.0001)
+  assert np.allclose(simulate_hands_bitcount_gpu_cuda(10**7, RNG), EXPECTED_PROB, atol=0.0001)
 
 # %%
 if cuda.is_available():
   print('Timing:')
-  # %timeit -n1 -r10 simulate_hands_bitmask_gpu_cuda(10**7, RNG)  # ~41 ms if low variance.
+  # %timeit -n1 -r5 simulate_hands_bitcount_gpu_cuda(2 * 10**7, RNG)  # ~85-120 ms.
 
 # %%
 if cuda.is_available():
-  write_numba_assembly_code(gpu_bitmask, 'gpu_bitmask.ptx')
-  report_cuda_kernel_properties(gpu_bitmask)
+  write_numba_assembly_code(gpu_bitcount, 'gpu_bitcount.ptx')
+  report_cuda_kernel_properties(gpu_bitcount)
+
+# %% [markdown]
+# ## Approach 3: 52-bit deck bitmask
+
+
+# %% [markdown]
+# Because poker uses a single 52-card deck, we encode each card as a **single bit** within a 52-bit "deck mask" stored in a `uint64`.
+#
+# We represent a hand of five cards by simpling `OR`-ing together the corresponding five "deck masks".
+
+# %%
+# Thanks to Marcel Gavriliu for this approach of storing card deck masks.
+
+# %%
+THREADS_PER_BLOCK = 256
+
+# %% [markdown]
+# ### GPU simulation
+
+
+# %%
+@numba_njit(inline='always')
+def deckmask_of_card(card: numba.uint8) -> numba.uint64:
+  """Return a deckmask of 52 bits encoding the suit and rank of `card` (in `range(52)`)."""
+  return numba.uint64(1) << numba.uint32(card)
+
+
+# %%
+@cuda.jit(fastmath=True)  # type: ignore[misc]
+def gpu_deckmask(rng_states: _CudaArray, decks_per_thread: int, global_tally: _CudaArray) -> None:
+  """CUDA kernel to compute hand probabilities using a deck-mask approach."""
+  # pylint: disable=too-many-function-args, no-value-for-parameter, comparison-with-callable
+  uint8, int32, uint32, float32 = numba.uint8, numba.int32, numba.uint32, numba.float32
+  popc = cuda.popc
+  thread_index = cuda.grid(1)
+  if thread_index >= len(rng_states):
+    return
+  thread_id = cuda.threadIdx.x  # Index within block.
+
+  # Per-thread hand outcome tallies (ROYAL_FLUSH, ..., HIGH_CARD).
+  t0 = t1 = t2 = t3 = t4 = t5 = t6 = t7 = t8 = t9 = uint32(0)
+
+  block_deck = cuda.shared.array((THREADS_PER_BLOCK, DECK_SIZE), np.uint8)
+  deck = block_deck[thread_id]
+
+  for i in range(uint8(DECK_SIZE)):  # Casting as uint8 nicely unrolls the loop.
+    deck[i] = i
+
+  rng = rng_states[thread_index]
+  s0, s1, s2, s3 = rng['s0'], rng['s1'], rng['s2'], rng['s3']
+
+  for _ in range(int32(decks_per_thread)):
+    # Apply Fisher-Yates shuffle to current deck, iteratively swapping [i] with any [0, ..., i].
+    i = uint32(51)
+    while i > 0:
+      random_uint32, s0, s1, s2, s3 = random32.xoshiro128p_next_raw(s0, s1, s2, s3)
+      random_uint32 = uint32(random_uint32)
+      s0, s1, s2, s3 = uint32(s0), uint32(s1), uint32(s2), uint32(s3)
+      j = uint32(float32(random_uint32) * float32((1.0 - 1e-7) / 2**32) * float32(int32(i + 1)))
+      deck[i], deck[j] = deck[j], deck[i]
+      i = uint32(i - 1)
+
+    mask0, mask1 = deckmask_of_card(deck[0]), deckmask_of_card(deck[1])
+    mask2, mask3 = deckmask_of_card(deck[2]), deckmask_of_card(deck[3])
+    deckmask = mask0 + mask1 + mask2 + mask3
+
+    card_index = uint32(4)
+    while card_index < uint32(DECK_SIZE):
+      mask4 = deckmask_of_card(deck[card_index])
+      deckmask += mask4  # No bit carries; same as "deckmask |= mask4".
+
+      # Extract four 13-bit masks for the ranks in each suit:
+      RANK_MASK = (1 << NUM_RANKS) - 1
+      r0 = uint32(uint32(deckmask >> (NUM_RANKS * 0)) & RANK_MASK)
+      r1 = uint32(uint32(deckmask >> (NUM_RANKS * 1)) & RANK_MASK)
+      r2 = uint32(uint32(deckmask >> (NUM_RANKS * 2)) & RANK_MASK)
+      r3 = uint32(uint32(deckmask >> (NUM_RANKS * 3)) & RANK_MASK)
+      ranks = uint32(r0 | r1 | r2 | r3)
+
+      is_flush = max(popc(r0), popc(r1), popc(r2), popc(r3)) == CARDS_FOR_A_FLUSH
+      bunched_bits = uint32(cuda.clz(ranks) + cuda.ffs(ranks)) == 32 - HAND_SIZE + 1
+      is_non_ace_low_straight = (popc(ranks) == CARDS_FOR_A_STRAIGHT) & bunched_bits
+      is_ace_low_straight = ranks == 0b1000000001111
+      is_straight = is_non_ace_low_straight or is_ace_low_straight
+      is_royal_straight = ranks == 0b1111100000000
+      fours = uint32(r0 & r1 & r2 & r3)
+      three_or_more = uint32((r0 & r1 & r2) | (r0 & r1 & r3) | (r0 & r2 & r3) | (r1 & r2 & r3))
+      two_or_more = uint32((r0 & r1) | (r0 & r2) | (r0 & r3) | (r1 & r2) | (r1 & r3) | (r2 & r3))
+      num_two_or_more = popc(two_or_more)
+
+      if is_flush and is_straight:
+        if is_royal_straight:
+          t0 = uint32(t0 + 1)  # ROYAL_FLUSH.
+        else:
+          t1 = uint32(t1 + 1)  # STRAIGHT_FLUSH.
+      elif fours != 0:
+        t2 = uint32(t2 + 1)  # FOUR_OF_A_KIND.
+      elif three_or_more != 0 and num_two_or_more > 1:
+        t3 = uint32(t3 + 1)  # FULL_HOUSE.
+      elif is_flush:
+        t4 = uint32(t4 + 1)  # FLUSH.
+      elif is_straight:
+        t5 = uint32(t5 + 1)  # STRAIGHT.
+      elif three_or_more != 0:
+        t6 = uint32(t6 + 1)  # THREE_OF_A_KIND.
+      elif num_two_or_more == 2:
+        t7 = uint32(t7 + 1)  # TWO_PAIR.
+      elif num_two_or_more == 1:
+        t8 = uint32(t8 + 1)  # ONE_PAIR.
+      else:
+        t9 = uint32(t9 + 1)  # HIGH_CARD.
+
+      deckmask -= mask0  # No bit carries; same as "deckmask &= ~mask0".
+      mask0, mask1, mask2, mask3 = mask1, mask2, mask3, mask4
+      card_index = uint32(card_index + 1)
+
+  pairs = (0, t0), (1, t1), (2, t2), (3, t3), (4, t4), (5, t5), (6, t6), (7, t7), (8, t8), (9, t9)
+  for i, t in pairs:
+    cuda.atomic.add(global_tally, i, t)
+
+
+# %%
+def simulate_hands_deckmask_gpu_cuda(num_decks: int, rng: np.random.Generator) -> Probabilities:
+  """Compute hand probabilities using a deckmask approach by invoking a CUDA kernel."""
+  device = cuda.get_current_device()
+  PARALLELISM = 8  # Number of blocks per SM.
+  target_num_threads = PARALLELISM * device.MULTIPROCESSOR_COUNT * THREADS_PER_BLOCK
+  decks_per_thread = max(1, num_decks // target_num_threads)
+  num_threads = num_decks // decks_per_thread
+  # print(f'{decks_per_thread=} {num_threads=}')
+  blocks = math.ceil(num_threads / THREADS_PER_BLOCK)
+  seed = rng.integers(2**64, dtype=np.uint64)
+  d_rng_states = random32.create_xoshiro128p_states(num_threads, seed)
+  d_global_tally = cuda.to_device(np.zeros(NUM_OUTCOMES, np.int64))
+  gpu_deckmask[blocks, THREADS_PER_BLOCK](d_rng_states, decks_per_thread, d_global_tally)
+  return d_global_tally.copy_to_host() / (num_threads * decks_per_thread * HANDS_PER_DECK)
+
+
+# %%
+if cuda.is_available():
+  assert np.allclose(simulate_hands_deckmask_gpu_cuda(10**7, RNG), EXPECTED_PROB, atol=0.0001)
+
+# %%
+if cuda.is_available():
+  print('Timing:')
+  # %timeit -n1 -r5 simulate_hands_deckmask_gpu_cuda(5 * 10**7, RNG)  # ~65-180 ms.
+
+# %%
+if cuda.is_available():
+  write_numba_assembly_code(gpu_deckmask, 'gpu_deckmask.ptx')
+  report_cuda_kernel_properties(gpu_deckmask)
+
+# %%
+# simulate_poker_hands(10**10, 'deckmask_gpu_cuda', simulate_hands_deckmask_gpu_cuda)  # ~17-41 G hands/s.
 
 # %% [markdown]
 # ## Results
@@ -881,9 +1060,10 @@ SIMULATE_FUNCTIONS = {
         'array_cpu_numba': simulate_hands_array_cpu_numba,
         'array_cpu_numba_multiprocess': simulate_hands_array_cpu_numba_multiprocess,
         'array_gpu_cuda': simulate_hands_array_gpu_cuda,
-        'bitmask_cpu_numba': simulate_hands_bitmask_cpu_numba,
-        'bitmask_cpu_numba_multiprocess': simulate_hands_bitmask_cpu_numba_multiprocess,
-        'bitmask_gpu_cuda': simulate_hands_bitmask_gpu_cuda,
+        'bitcount_cpu_numba': simulate_hands_bitcount_cpu_numba,
+        'bitcount_cpu_numba_multiprocess': simulate_hands_bitcount_cpu_numba_multiprocess,
+        'bitcount_gpu_cuda': simulate_hands_bitcount_gpu_cuda,
+        'deckmask_gpu_cuda': simulate_hands_deckmask_gpu_cuda,
     }.items()
     if ('multiprocess' not in name or MULTIPROCESS_IS_AVAILABLE)
     and ('cuda' not in name or cuda.is_available())
@@ -894,10 +1074,11 @@ COMPLEXITY_ADJUSTMENT = {
     'array_cpu_python': 0.01,
     'array_cpu_numba': 2.0,
     'array_cpu_numba_multiprocess': 20.0,
-    'array_gpu_cuda': 100.0,
-    'bitmask_cpu_numba': 2.0,
-    'bitmask_cpu_numba_multiprocess': 20.0,
-    'bitmask_gpu_cuda': 200.0,
+    'array_gpu_cuda': 500.0,
+    'bitcount_cpu_numba': 2.0,
+    'bitcount_cpu_numba_multiprocess': 20.0,
+    'bitcount_gpu_cuda': 2000.0,
+    'deckmask_gpu_cuda': 4000.0,
 }
 
 
@@ -906,11 +1087,11 @@ def simulate_poker_hands(
     desired_num_hands: int,
     func_name: str,
     func: Callable[[int, np.random.Generator], Probabilities],
+    verbose: bool = False,
 ) -> None:
   """Report hand probabilities and timings using a particular approach."""
   num_decks = math.ceil(desired_num_hands / HANDS_PER_DECK)
   num_hands = num_decks * HANDS_PER_DECK
-  print(f'\n# For {func_name} simulating {num_hands:,} hands:')
 
   # Ensure the function is jitted.
   _ = func(num_decks // 10, RNG)
@@ -921,52 +1102,59 @@ def simulate_poker_hands(
 
   round_digits: Any = lambda x, ndigits=3: round(x, ndigits - 1 - math.floor(math.log10(abs(x))))
   hands_per_s: float = round_digits(int(num_hands / elapsed_time))
-  print(f'#  Elapsed time is {elapsed_time:.3f} s, or {hands_per_s:,} hands/s.')
+  print(
+      f'\n# For {func_name:<32} {num_hands:13,} hands;'
+      f' {elapsed_time:.3f} s; {hands_per_s:13,} hands/s.'
+  )
 
-  print('#  Probabilities:')
+  if verbose:
+    print('#  Probabilities:')
+  sigmas = []
   for outcome, result_prob in zip(Outcome, results):
     reference_prob = outcome.reference_count / comb(DECK_SIZE, HAND_SIZE)
     error = result_prob - reference_prob
     estimate_sdv = (reference_prob * (1 - reference_prob) / num_hands) ** 0.5
     sdv = error / estimate_sdv
+    sigmas.append(f' {sdv:6.2f}σ')
     s = f'#   {outcome.string_name:<16}: {result_prob * 100:8.5f}%'
     s += f'  (vs. ref. {reference_prob * 100:8.5f}%  error:{error * 100:8.5f}% {sdv:6.2f}σ)'
-    print(s)
+    if verbose:
+      print(s)
+  if not verbose:
+    print('#   ' + ''.join(sigmas))
 
 
 # %%
-def compare_simulations(base_num_hands: int) -> None:
+def compare_simulations(base_num_hands: int, verbose: bool = False) -> None:
   """Report hand probabilities and timings using a variety of approaches on CPU and GPU."""
   for func_name, func in SIMULATE_FUNCTIONS.items():
     desired_num_hands = math.ceil(base_num_hands * COMPLEXITY_ADJUSTMENT[func_name])
-    simulate_poker_hands(desired_num_hands, func_name, func)
+    simulate_poker_hands(desired_num_hands, func_name, func, verbose)
 
 
 # %%
 compare_simulations(base_num_hands=10**7)
 
 # %%
-# 135k, 44m, 470m, 2200-3400m, 135k, 890k, 8000-12500m
+# Hands/s: 135k, 44m, 470m, 16g, 135m, 890m, 57g, 108g.
 
 # %%
 if 1:
   if cuda.is_available():
-    simulate_poker_hands(10**12, 'bitmask_gpu_cuda', simulate_hands_bitmask_gpu_cuda)
+    simulate_poker_hands(10**12, 'bitcount_gpu_cuda', simulate_hands_bitcount_gpu_cuda)
 
 # %%
-# For bitmask_gpu_cuda simulating 1,000,000,000,032 hands:
-#  Elapsed time is 80.862 s, or 12,400,000,000 hands/s.
-#  Probabilities:
-#   Royal flush     :  0.00015%  (vs. ref.  0.00015%  error:-0.00000%  -0.98σ)
-#   Straight flush  :  0.00138%  (vs. ref.  0.00139%  error:-0.00000%  -0.66σ)
-#   Four of a kind  :  0.02401%  (vs. ref.  0.02401%  error: 0.00000%   0.11σ)
-#   Full house      :  0.14406%  (vs. ref.  0.14406%  error: 0.00000%   1.31σ)
-#   Flush           :  0.19654%  (vs. ref.  0.19654%  error: 0.00000%   0.50σ)
-#   Straight        :  0.39247%  (vs. ref.  0.39246%  error: 0.00000%   0.76σ)
-#   Three of a kind :  2.11285%  (vs. ref.  2.11285%  error: 0.00000%   0.14σ)
-#   Two pair        :  4.75391%  (vs. ref.  4.75390%  error: 0.00001%   0.31σ)
-#   One pair        : 42.25699%  (vs. ref. 42.25690%  error: 0.00009%   1.76σ)
-#   High card       : 50.11763%  (vs. ref. 50.11774%  error:-0.00011%  -2.15σ)
+# For bitcount_gpu_cuda                1,000,000,000,032 hands; 14.303 s; 69,900,000,000 hands/s.
+#      0.37σ  -0.78σ   1.09σ  -0.53σ  -0.53σ  -0.72σ  -1.61σ  -0.95σ  -0.91σ   1.91σ
+
+# %%
+if 1:
+  if cuda.is_available():
+    simulate_poker_hands(10**12, 'deckmask_gpu_cuda', simulate_hands_deckmask_gpu_cuda)
+
+# %%
+# For deckmask_gpu_cuda                1,000,000,000,032 hands; 6.777 s; 148,000,000,000 hands/s.
+#     -0.07σ  -1.39σ   1.84σ   1.33σ   0.81σ  -1.17σ  -1.01σ  -0.69σ  -0.40σ   0.91σ
 
 # %% [markdown]
 # ## End

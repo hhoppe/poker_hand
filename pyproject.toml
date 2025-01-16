@@ -24,7 +24,7 @@ disable = [
     "too-many-lines", "too-few-public-methods", "too-many-arguments", "too-many-locals",
     "use-dict-literal", "unnecessary-lambda-assignment",
     # Local:
-    "too-many-return-statements", "too-many-branches",
+    "too-many-return-statements", "too-many-branches", "too-many-statements",
     "missing-module-docstring",
 ]
 reports = false
