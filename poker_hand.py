@@ -38,10 +38,10 @@
 #   <th style="text-align: center">CUDA<br>SMs</th>
 #   <th style="background-color: #EBF5FF">Python</th>
 #   <th style="background-color: #EBF5FF">Numba</th>
-#   <th style="background-color: #EBF5FF">Multiprocess</th>
+#   <th style="background-color: #EBF5FF">Multi-<br/>process</th>
 #   <th style="background-color: #EBF5FF">CUDA</th>
 #   <th style="background-color: #F0FDF4">Numba</th>
-#   <th style="background-color: #F0FDF4">Multiprocess</th>
+#   <th style="background-color: #F0FDF4">Multi-<br/>process</th>
 #   <th style="background-color: #F0FDF4">CUDA</th>
 #   <th style="background-color: #FFF8F4">CUDA</th>
 # </tr>
@@ -50,96 +50,96 @@
 #   <td style="text-align: center">24</td>
 #   <td style="text-align: center">GeForce 3080 Ti</td>
 #   <td style="text-align: center">80</td>
-#   <td style="text-align: right; background-color: #EBF5FF">21,800</td>
-#   <td style="text-align: right; background-color: #EBF5FF">28,200,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">20 k</td>
+#   <td style="text-align: right; background-color: #EBF5FF">39 M</td>
 #   <td style="text-align: right; background-color: #EBF5FF">-</td>
-#   <td style="text-align: right; background-color: #EBF5FF">3,300,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">125,000,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">16 G</td>
+#   <td style="text-align: right; background-color: #F0FDF4">123 M</td>
 #   <td style="text-align: right; background-color: #F0FDF4">-</td>
-#   <td style="text-align: right; background-color: #F0FDF4">12,200,000,000</td>
-#   <td style="text-align: right; background-color: #FFF8F4">?,200,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">70 G</td>
+#   <td style="text-align: right; background-color: #FFF8F4">147 G</td>
 # </tr>
 # <tr>
 #   <td><b>My PC</b> WSL2</td>
 #   <td style="text-align: center">24</td>
 #   <td style="text-align: center">GeForce 3080 Ti</td>
 #   <td style="text-align: center">80</td>
-#   <td style="text-align: right; background-color: #EBF5FF">135,000</td>
-#   <td style="text-align: right; background-color: #EBF5FF">33,000,000</td>
-#   <td style="text-align: right; background-color: #EBF5FF">350,000,000</td>
-#   <td style="text-align: right; background-color: #EBF5FF">16,500,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">138,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">912,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">70,000,000,000</td>
-#   <td style="text-align: right; background-color: #FFF8F4">148,000,000,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">135 k</td>
+#   <td style="text-align: right; background-color: #EBF5FF">33 M</td>
+#   <td style="text-align: right; background-color: #EBF5FF">350 M</td>
+#   <td style="text-align: right; background-color: #EBF5FF">17 G</td>
+#   <td style="text-align: right; background-color: #F0FDF4">138 M</td>
+#   <td style="text-align: right; background-color: #F0FDF4">912 M</td>
+#   <td style="text-align: right; background-color: #F0FDF4">70 G</td>
+#   <td style="text-align: right; background-color: #FFF8F4">148 G</td>
 # </tr>
 # <tr>
 #   <td><b>Marcel PC</b> Win</td>
 #   <td style="text-align: center">40</td>
 #   <td style="text-align: center">Titan V</td>
 #   <td style="text-align: center">80</td>
-#   <td style="text-align: right; background-color: #EBF5FF"><s>62,800</s></td>
-#   <td style="text-align: right; background-color: #EBF5FF"><s>5,160,000</s></td>
+#   <td style="text-align: right; background-color: #EBF5FF"><s>63 k</s></td>
+#   <td style="text-align: right; background-color: #EBF5FF"><s>5 M</s></td>
 #   <td style="text-align: right; background-color: #EBF5FF">-</td>
-#   <td style="text-align: right; background-color: #EBF5FF"><s>2,280,000,000</s></td>
-#   <td style="text-align: right; background-color: #F0FDF4">?00,000,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF"><s>2 G</s></td>
+#   <td style="text-align: right; background-color: #F0FDF4">?00 M</td>
 #   <td style="text-align: right; background-color: #F0FDF4">-</td>
-#   <td style="text-align: right; background-color: #F0FDF4">?,000,000,000</td>
-#   <td style="text-align: right; background-color: #FFF8F4">?,000,000,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">? G</td>
+#   <td style="text-align: right; background-color: #FFF8F4">? G</td>
 # </tr>
 # <tr>
 #   <td><a href="https://colab.research.google.com/github/hhoppe/poker_hand/blob/main/poker_hand.ipynb"><b>Colab</b> T4</a></td>
 #   <td style="text-align: center">2</td>
 #   <td style="text-align: center">Tesla T4</td>
 #   <td style="text-align: center">40</td>
-#   <td style="text-align: right; background-color: #EBF5FF">17,000</td>
-#   <td style="text-align: right; background-color: #EBF5FF">14,600,000</td>
-#   <td style="text-align: right; background-color: #EBF5FF">16,400,000</td>
-#   <td style="text-align: right; background-color: #EBF5FF">3,670,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">60,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">63,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">32,200,000,000</td>
-#   <td style="text-align: right; background-color: #FFF8F4">32,200,000,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">14 k</td>
+#   <td style="text-align: right; background-color: #EBF5FF">18 M</td>
+#   <td style="text-align: right; background-color: #EBF5FF">29 M</td>
+#   <td style="text-align: right; background-color: #EBF5FF">4 G</td>
+#   <td style="text-align: right; background-color: #F0FDF4">58 M</td>
+#   <td style="text-align: right; background-color: #F0FDF4">45 M</td>
+#   <td style="text-align: right; background-color: #F0FDF4">21 G</td>
+#   <td style="text-align: right; background-color: #FFF8F4">43 G</td>
 # </tr>
 # <tr>
 #   <td><a href="https://www.kaggle.com/notebooks/welcome?src=https://github.com/hhoppe/poker_hand/blob/main/poker_hand.ipynb"><b>Kaggle</b> T4</a></td>
 #   <td style="text-align: center">4</td>
 #   <td style="text-align: center">Tesla T4 x2</td>
 #   <td style="text-align: center">40</td>
-#   <td style="text-align: right; background-color: #EBF5FF">17,300</td>
-#   <td style="text-align: right; background-color: #EBF5FF">14,800,000</td>
-#   <td style="text-align: right; background-color: #EBF5FF">31,800,000</td>
-#   <td style="text-align: right; background-color: #EBF5FF">3,560,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">61,600,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">117,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">31,800,000,000</td>
-#   <td style="text-align: right; background-color: #FFF8F4">31,800,000,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">15 k</td>
+#   <td style="text-align: right; background-color: #EBF5FF">24 M</td>
+#   <td style="text-align: right; background-color: #EBF5FF">60 M</td>
+#   <td style="text-align: right; background-color: #EBF5FF">4 G</td>
+#   <td style="text-align: right; background-color: #F0FDF4">62 M</td>
+#   <td style="text-align: right; background-color: #F0FDF4">118 M</td>
+#   <td style="text-align: right; background-color: #F0FDF4">22 G</td>
+#   <td style="text-align: right; background-color: #FFF8F4">46 G</td>
 # </tr>
 # <tr>
 #   <td><a href="https://www.kaggle.com/notebooks/welcome?src=https://github.com/hhoppe/poker_hand/blob/main/poker_hand.ipynb"><b>Kaggle</b> P100</a></td>
 #   <td style="text-align: center">4</td>
 #   <td style="text-align: center">Tesla P100</td>
 #   <td style="text-align: center">56</td>
-#   <td style="text-align: right; background-color: #EBF5FF">17,100</td>
-#   <td style="text-align: right; background-color: #EBF5FF">15,000,000</td>
-#   <td style="text-align: right; background-color: #EBF5FF">31,000,000</td>
-#   <td style="text-align: right; background-color: #EBF5FF">3,600,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">62,400,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">124,000,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">34,700,000,000</td>
-#   <td style="text-align: right; background-color: #FFF8F4">34,700,000,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">15 k</td>
+#   <td style="text-align: right; background-color: #EBF5FF">24 M</td>
+#   <td style="text-align: right; background-color: #EBF5FF">58 M</td>
+#   <td style="text-align: right; background-color: #EBF5FF">4 G</td>
+#   <td style="text-align: right; background-color: #F0FDF4">61 M</td>
+#   <td style="text-align: right; background-color: #F0FDF4">124 M</td>
+#   <td style="text-align: right; background-color: #F0FDF4">22 G</td>
+#   <td style="text-align: right; background-color: #FFF8F4">54 G</td>
 # </tr>
 # <tr>
 #   <td><a href="https://mybinder.org/v2/gh/hhoppe/poker_hand/main?urlpath=lab/tree/poker_hand.ipynb"><b>Mybinder</b></a></td>
 #   <td style="text-align: center">72</td>
 #   <td style="text-align: center">None</td>
 #   <td style="text-align: center">-</td>
-#   <td style="text-align: right; background-color: #EBF5FF">18,200</td>
-#   <td style="text-align: right; background-color: #EBF5FF">7,100,000</td>
-#   <td style="text-align: right; background-color: #EBF5FF">3,200,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">17 k</td>
+#   <td style="text-align: right; background-color: #EBF5FF">16 M</td>
+#   <td style="text-align: right; background-color: #EBF5FF">6 M</td>
 #   <td style="text-align: right; background-color: #EBF5FF">-</td>
-#   <td style="text-align: right; background-color: #F0FDF4">23,500,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">9,600,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">24 M</td>
+#   <td style="text-align: right; background-color: #F0FDF4">9 M</td>
 #   <td style="text-align: right; background-color: #F0FDF4">-</td>
 #   <td style="text-align: right; background-color: #FFF8F4">-</td>
 # </tr>
@@ -148,25 +148,22 @@
 #   <td style="text-align: center">8</td>
 #   <td style="text-align: center">None</td>
 #   <td style="text-align: center">-</td>
-#   <td style="text-align: right; background-color: #EBF5FF">16,600</td>
-#   <td style="text-align: right; background-color: #EBF5FF">23,700,000</td>
-#   <td style="text-align: right; background-color: #EBF5FF">12,900,000</td>
+#   <td style="text-align: right; background-color: #EBF5FF">18 k</td>
+#   <td style="text-align: right; background-color: #EBF5FF">37 M</td>
+#   <td style="text-align: right; background-color: #EBF5FF">20 M</td>
 #   <td style="text-align: right; background-color: #EBF5FF">-</td>
-#   <td style="text-align: right; background-color: #F0FDF4">72,300,000</td>
-#   <td style="text-align: right; background-color: #F0FDF4">47,500,000</td>
+#   <td style="text-align: right; background-color: #F0FDF4">86 M</td>
+#   <td style="text-align: right; background-color: #F0FDF4">48 M</td>
 #   <td style="text-align: right; background-color: #F0FDF4">-</td>
 #   <td style="text-align: right; background-color: #FFF8F4">-</td>
 # </tr>
 # </table>
 
 # %% [markdown]
-# It is puzzling that the CUDA rate is lower on my PC than on the online servers.  The GeForce may have worse uint64 throughput?
-
-# %% [markdown]
 # ## Imports
 
 # %%
-# !pip install -q numba
+# !pip install -q "numpy>=1.25" numba
 
 # %%
 # !if [ ! -f random32.py ]; then wget https://github.com/hhoppe/poker_hand/raw/main/random32.py; fi
