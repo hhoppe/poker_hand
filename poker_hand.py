@@ -560,8 +560,8 @@ def gpu_array(rng_states: _CudaArray, decks_per_thread: int, global_tally: _Cuda
 def simulate_hands_array_gpu_cuda(num_decks: int, rng: np.random.Generator) -> Probabilities:
   """Compute hand probabilities using an array approach by invoking a CUDA kernel."""
   device = cuda.get_current_device()
-  PARALLELISM = 8  # Number of blocks per SM.
-  target_num_threads = PARALLELISM * device.MULTIPROCESSOR_COUNT * THREADS_PER_BLOCK
+  BLOCKS_PER_SM = 8
+  target_num_threads = THREADS_PER_BLOCK * BLOCKS_PER_SM * device.MULTIPROCESSOR_COUNT
   decks_per_thread = max(1, num_decks // target_num_threads)
   num_threads = num_decks // decks_per_thread
   # print(f'{decks_per_thread=} {num_threads=}')
@@ -862,8 +862,8 @@ def gpu_bitcount(rng_states: _CudaArray, decks_per_thread: int, global_tally: _C
 def simulate_hands_bitcount_gpu_cuda(num_decks: int, rng: np.random.Generator) -> Probabilities:
   """Compute hand probabilities using a bitcount approach by invoking a CUDA kernel."""
   device = cuda.get_current_device()
-  PARALLELISM = 8  # Number of blocks per SM.
-  target_num_threads = PARALLELISM * device.MULTIPROCESSOR_COUNT * THREADS_PER_BLOCK
+  BLOCKS_PER_SM = 8
+  target_num_threads = THREADS_PER_BLOCK * BLOCKS_PER_SM * device.MULTIPROCESSOR_COUNT
   decks_per_thread = max(1, num_decks // target_num_threads)
   num_threads = num_decks // decks_per_thread
   # print(f'{decks_per_thread=} {num_threads=}')
@@ -1007,17 +1007,31 @@ def gpu_deckmask(rng_states: _CudaArray, decks_per_thread: int, global_tally: _C
       mask0, mask1, mask2, mask3 = mask1, mask2, mask3, mask4
       card_index = uint32(card_index + 1)
 
-  pairs = (0, t0), (1, t1), (2, t2), (3, t3), (4, t4), (5, t5), (6, t6), (7, t7), (8, t8), (9, t9)
-  for i, t in pairs:
-    cuda.atomic.add(global_tally, i, t)
+  if 0:  # Just as fast.
+    pairs = (0, t0), (1, t1), (2, t2), (3, t3), (4, t4), (5, t5), (6, t6), (7, t7), (8, t8), (9, t9)
+    for i, t in pairs:
+      cuda.atomic.add(global_tally, i, t)
+
+  else:
+    shared_tally = cuda.shared.array(NUM_OUTCOMES, np.uint64)
+    if thread_id == 0:
+      shared_tally[:] = 0
+    cuda.syncthreads()
+    pairs = (0, t0), (1, t1), (2, t2), (3, t3), (4, t4), (5, t5), (6, t6), (7, t7), (8, t8), (9, t9)
+    for i, t in pairs:
+      cuda.atomic.add(shared_tally, i, t)
+    cuda.syncthreads()
+    if thread_id == 0:
+      for i in range(NUM_OUTCOMES):
+        cuda.atomic.add(global_tally, i, shared_tally[i])
 
 
 # %%
 def simulate_hands_deckmask_gpu_cuda(num_decks: int, rng: np.random.Generator) -> Probabilities:
   """Compute hand probabilities using a deckmask approach by invoking a CUDA kernel."""
   device = cuda.get_current_device()
-  PARALLELISM = 8  # Number of blocks per SM.
-  target_num_threads = PARALLELISM * device.MULTIPROCESSOR_COUNT * THREADS_PER_BLOCK
+  BLOCKS_PER_SM = 8
+  target_num_threads = THREADS_PER_BLOCK * BLOCKS_PER_SM * device.MULTIPROCESSOR_COUNT
   decks_per_thread = max(1, num_decks // target_num_threads)
   num_threads = num_decks // decks_per_thread
   # print(f'{decks_per_thread=} {num_threads=}')
@@ -1100,8 +1114,8 @@ def simulate_poker_hands(
   round_digits: Any = lambda x, ndigits=3: round(x, ndigits - 1 - math.floor(math.log10(abs(x))))
   hands_per_s: float = round_digits(int(num_hands / elapsed_time))
   print(
-      f'\n# For {func_name:<32} {num_hands:13,} hands;'
-      f' {elapsed_time:.3f} s; {hands_per_s:13,} hands/s.'
+      f'# {func_name:<32} {num_hands:18,} hands;'
+      f' {elapsed_time:.3f} s; {hands_per_s:17,} hands/s.'
   )
 
   if verbose:
@@ -1118,13 +1132,19 @@ def simulate_poker_hands(
     if verbose:
       print(s)
   if not verbose:
-    print('#   ' + ''.join(sigmas))
+    print('# ' + ''.join(sigmas))
+
+
+# %%
+simulate_poker_hands(10**7, 'array_cpu_numba', simulate_hands_array_cpu_numba, verbose=True)
 
 
 # %%
 def compare_simulations(base_num_hands: int, verbose: bool = False) -> None:
   """Report hand probabilities and timings using a variety of approaches on CPU and GPU."""
-  for func_name, func in SIMULATE_FUNCTIONS.items():
+  for index, (func_name, func) in enumerate(SIMULATE_FUNCTIONS.items()):
+    if index:
+      print()
     desired_num_hands = math.ceil(base_num_hands * COMPLEXITY_ADJUSTMENT[func_name])
     simulate_poker_hands(desired_num_hands, func_name, func, verbose)
 
@@ -1133,7 +1153,7 @@ def compare_simulations(base_num_hands: int, verbose: bool = False) -> None:
 compare_simulations(base_num_hands=10**7)
 
 # %%
-# Hands/s: 135k, 44m, 470m, 16g, 135m, 890m, 57g, 108g.
+# Hands/s: 135k, 44m, 470m, 16g, 135m, 890m, 57g, 120g.
 
 # %%
 if 1:
