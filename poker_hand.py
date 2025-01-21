@@ -74,20 +74,6 @@
 #   <td style="text-align: right; background-color: #FFF8F4">148 G</td>
 # </tr>
 # <tr>
-#   <td><b>Marcel PC</b> Win</td>
-#   <td style="text-align: center">40</td>
-#   <td style="text-align: center">Titan V</td>
-#   <td style="text-align: center">80</td>
-#   <td style="text-align: right; background-color: #EBF5FF"><s>63 k</s></td>
-#   <td style="text-align: right; background-color: #EBF5FF"><s>5 M</s></td>
-#   <td style="text-align: right; background-color: #EBF5FF">-</td>
-#   <td style="text-align: right; background-color: #EBF5FF"><s>2 G</s></td>
-#   <td style="text-align: right; background-color: #F0FDF4">?00 M</td>
-#   <td style="text-align: right; background-color: #F0FDF4">-</td>
-#   <td style="text-align: right; background-color: #F0FDF4">? G</td>
-#   <td style="text-align: right; background-color: #FFF8F4">? G</td>
-# </tr>
-# <tr>
 #   <td><a href="https://colab.research.google.com/github/hhoppe/poker_hand/blob/main/poker_hand.ipynb"><b>Colab</b> T4</a></td>
 #   <td style="text-align: center">2</td>
 #   <td style="text-align: center">Tesla T4</td>
@@ -899,7 +885,7 @@ if cuda.is_available():
 # %% [markdown]
 # Because poker uses a single 52-card deck, we encode each card as a **single bit** within a 52-bit "deck mask" stored in a `uint64`.
 #
-# We represent a hand of five cards by simpling `OR`-ing together the corresponding five "deck masks".
+# We represent a hand of five cards by simply `OR`-ing together the corresponding five "deck masks".
 
 # %%
 # Thanks to Marcel Gavriliu for this approach of storing card deck masks.
