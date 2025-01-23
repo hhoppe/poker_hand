@@ -17,6 +17,8 @@
 #
 # - [Open in deepnote.com](https://deepnote.com/launch?url=https%3A%2F%2Fgithub.com%2Fhhoppe%2Fpoker_hand%2Fblob%2Fmain%2Fpoker_hand.ipynb).  Unfortunately, no GPU is available.
 #
+# - [Amazon SageMaker](https://studiolab.sagemaker.aws/).  Must have an account.  Select GPU.  Clone repo into root directory.  Use Python kernel "sagemaker-distribution".
+#
 # Here are results:
 
 # %% [markdown]
@@ -74,7 +76,7 @@
 #   <td style="text-align: right; background-color: #FFF8F4">148 G</td>
 # </tr>
 # <tr>
-#   <td><a href="https://colab.research.google.com/github/hhoppe/poker_hand/blob/main/poker_hand.ipynb"><b>Colab</b> T4</a></td>
+#   <td><a href="https://colab.research.google.com/github/hhoppe/poker_hand/blob/main/poker_hand.ipynb"><b>Google Colab</b> T4</a></td>
 #   <td style="text-align: center">2</td>
 #   <td style="text-align: center">Tesla T4</td>
 #   <td style="text-align: center">40</td>
@@ -116,7 +118,7 @@
 #   <td style="text-align: right; background-color: #FFF8F4">54 G</td>
 # </tr>
 # <tr>
-#   <td><a href="https://mybinder.org/v2/gh/hhoppe/poker_hand/main?urlpath=lab/tree/poker_hand.ipynb"><b>Mybinder</b></a></td>
+#   <td><a href="https://mybinder.org/v2/gh/hhoppe/poker_hand/main?urlpath=lab/tree/poker_hand.ipynb"><b>mybinder.org</b></a></td>
 #   <td style="text-align: center">72</td>
 #   <td style="text-align: center">None</td>
 #   <td style="text-align: center">-</td>
@@ -142,6 +144,20 @@
 #   <td style="text-align: right; background-color: #F0FDF4">48 M</td>
 #   <td style="text-align: right; background-color: #F0FDF4">-</td>
 #   <td style="text-align: right; background-color: #FFF8F4">-</td>
+# </tr>
+# <tr>
+#   <td><a href="https://studiolab.sagemaker.aws/"><b>Amazon SageMaker</b></a></td>
+#   <td style="text-align: center">4</td>
+#   <td style="text-align: center">Tesla T4</td>
+#   <td style="text-align: center">40</td>
+#   <td style="text-align: right; background-color: #EBF5FF">16 k</td>
+#   <td style="text-align: right; background-color: #EBF5FF">24 M</td>
+#   <td style="text-align: right; background-color: #EBF5FF">59 M</td>
+#   <td style="text-align: right; background-color: #EBF5FF">4 G</td>
+#   <td style="text-align: right; background-color: #F0FDF4">61 M</td>
+#   <td style="text-align: right; background-color: #F0FDF4">124 M</td>
+#   <td style="text-align: right; background-color: #F0FDF4">24 G</td>
+#   <td style="text-align: right; background-color: #FFF8F4">52 G</td>
 # </tr>
 # </table>
 
@@ -266,6 +282,7 @@ def popc_helper(typing_context: Any, src: Any) -> Any:
 
   def codegen(context: Any, builder: Any, signature: Any, args: Any) -> Any:
     del context, signature
+    # pylint: disable-next=no-member
     return numba.cpython.mathimpl.call_fp_intrinsic(builder, 'llvm.ctpop.' + llvm_type, args)
 
   return src(src), codegen
