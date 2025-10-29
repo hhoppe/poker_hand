@@ -178,7 +178,7 @@ import multiprocessing
 import pathlib
 import time
 import typing
-from typing import Any, Callable
+from typing import Any, Callable, TypeAlias
 
 import numba
 from numba import cuda
@@ -191,8 +191,8 @@ import random32  # Replacement for https://github.com/numba/numba/blob/main/numb
 # mypy: disable-error-code="no-any-return"
 
 # %%
-_NDArray = numpy.typing.NDArray[Any]
-_CudaArray = Any  # cuda.cudadrv.devicearray.DeviceNDArray
+_NDArray: TypeAlias = numpy.typing.NDArray[Any]
+_CudaArray: TypeAlias = Any  # cuda.cudadrv.devicearray.DeviceNDArray
 _F = typing.TypeVar('_F', bound=Callable[..., Any])
 
 # %% [markdown]

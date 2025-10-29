@@ -6,6 +6,7 @@ aggressive = 3
 recursive = true
 
 [tool.mypy]
+cache_dir = "~/.cache/mypy"
 exclude = "^Other"
 ignore_missing_imports = true
 strict = true
