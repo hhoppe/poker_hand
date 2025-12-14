@@ -188,7 +188,7 @@ import numpy.typing
 import random32  # Replacement for https://github.com/numba/numba/blob/main/numba/cuda/random.py
 
 # %%
-# mypy: disable-error-code="no-any-return"
+# mypy: disable-error-code="no-any-return,untyped-decorator"
 
 # %%
 _NDArray: TypeAlias = numpy.typing.NDArray[Any]
@@ -494,7 +494,7 @@ THREADS_PER_BLOCK = 256
 
 # %%
 # Using either local memory or cuda.shared.array.
-@cuda.jit  # type: ignore[misc]
+@cuda.jit
 def gpu_array(rng_states: _CudaArray, decks_per_thread: int, global_tally: _CudaArray) -> None:
   """CUDA kernel to compute hand probabilities using an array approach."""
   # pylint: disable=too-many-function-args, no-value-for-parameter, comparison-with-callable
@@ -782,7 +782,7 @@ def simulate_hands_bitcount_cpu_numba_multiprocess(
 
 
 # %%
-@cuda.jit(fastmath=True)  # type: ignore[misc]
+@cuda.jit(fastmath=True)
 def gpu_bitcount(rng_states: _CudaArray, decks_per_thread: int, global_tally: _CudaArray) -> None:
   """CUDA kernel to compute hand probabilities using a bitcount approach."""
   # pylint: disable=too-many-function-args, no-value-for-parameter, comparison-with-callable
@@ -922,7 +922,7 @@ def deckmask_of_card(card: numba.uint8) -> numba.uint64:
 
 
 # %%
-@cuda.jit(fastmath=True)  # type: ignore[misc]
+@cuda.jit(fastmath=True)
 def gpu_deckmask(rng_states: _CudaArray, decks_per_thread: int, global_tally: _CudaArray) -> None:
   """CUDA kernel to compute hand probabilities using a deck-mask approach."""
   # pylint: disable=too-many-function-args, no-value-for-parameter, comparison-with-callable
