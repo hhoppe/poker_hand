@@ -165,7 +165,7 @@
 # ## Imports
 
 # %%
-# !pip install -q "numpy>=1.25" numba
+# !pip install -q "numpy>=1.25" numba numba-cuda
 
 # %%
 # !if [ ! -f random32.py ]; then wget https://github.com/hhoppe/poker_hand/raw/main/random32.py; fi
