@@ -171,6 +171,7 @@
 # !if [ ! -f random32.py ]; then wget https://github.com/hhoppe/poker_hand/raw/main/random32.py; fi
 
 # %%
+from collections.abc import Callable
 import enum
 import math
 from math import comb
@@ -178,7 +179,7 @@ import multiprocessing
 import pathlib
 import time
 import typing
-from typing import Any, Callable, TypeAlias
+from typing import Any, TypeAlias
 
 import numba
 from numba import cuda
@@ -188,7 +189,7 @@ import numpy.typing
 import random32  # Replacement for https://github.com/numba/numba/blob/main/numba/cuda/random.py
 
 # %%
-# mypy: disable-error-code="no-any-return,untyped-decorator"
+# mypy: disable-error-code="no-any-return, untyped-decorator"
 
 # %%
 _NDArray: TypeAlias = numpy.typing.NDArray[Any]
@@ -569,7 +570,7 @@ def simulate_hands_array_gpu_cuda(num_decks: int, rng: np.random.Generator) -> P
   num_threads = num_decks // decks_per_thread
   # print(f'{decks_per_thread=} {num_threads=}')
   blocks = math.ceil(num_threads / THREADS_PER_BLOCK)
-  seed = rng.integers(2**64, dtype=np.uint64)
+  seed = int(rng.integers(2**32, dtype=np.uint32))
   d_rng_states = random32.create_xoshiro128p_states(num_threads, seed)
   d_global_tally = cuda.to_device(np.zeros(NUM_OUTCOMES, np.int64))
   gpu_array[blocks, THREADS_PER_BLOCK](d_rng_states, decks_per_thread, d_global_tally)
@@ -871,7 +872,7 @@ def simulate_hands_bitcount_gpu_cuda(num_decks: int, rng: np.random.Generator) -
   num_threads = num_decks // decks_per_thread
   # print(f'{decks_per_thread=} {num_threads=}')
   blocks = math.ceil(num_threads / THREADS_PER_BLOCK)
-  seed = rng.integers(2**64, dtype=np.uint64)
+  seed = int(rng.integers(2**32, dtype=np.uint32))
   d_rng_states = random32.create_xoshiro128p_states(num_threads, seed)
   d_global_tally = cuda.to_device(np.zeros(NUM_OUTCOMES, np.int64))
   gpu_bitcount[blocks, THREADS_PER_BLOCK](d_rng_states, decks_per_thread, d_global_tally)
@@ -1039,7 +1040,7 @@ def simulate_hands_deckmask_gpu_cuda(num_decks: int, rng: np.random.Generator) -
   num_threads = num_decks // decks_per_thread
   # print(f'{decks_per_thread=} {num_threads=}')
   blocks = math.ceil(num_threads / THREADS_PER_BLOCK)
-  seed = rng.integers(2**64, dtype=np.uint64)
+  seed = int(rng.integers(2**32, dtype=np.uint32))
   d_rng_states = random32.create_xoshiro128p_states(num_threads, seed)
   d_global_tally = cuda.to_device(np.zeros(NUM_OUTCOMES, np.int64))
   gpu_deckmask[blocks, THREADS_PER_BLOCK](d_rng_states, decks_per_thread, d_global_tally)
