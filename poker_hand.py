@@ -171,21 +171,22 @@
 # !if [ ! -f random32.py ]; then wget https://github.com/hhoppe/poker_hand/raw/main/random32.py; fi
 
 # %%
-from collections.abc import Callable
 import enum
 import math
-from math import comb
 import multiprocessing
 import pathlib
 import time
 import typing
+from collections.abc import Callable
+from math import comb
 from typing import Any, TypeAlias
 
 import numba
-from numba import cuda
 import numba.cuda.random
 import numpy as np
 import numpy.typing
+from numba import cuda
+
 import random32  # Replacement for https://github.com/numba/numba/blob/main/numba/cuda/random.py
 
 # %%
@@ -623,8 +624,8 @@ ACE_LOW_STRAIGHT_RANK_MASK = 0b_001_000_000_000_000_000_000_000_000_001_001_001_
 SUITS_ONE = 0b_001_001_001_001  # One card of each suit.
 
 # %%
-assert RANKS_ONE == int(sum((2**CARD_COUNT_BITS) ** np.arange(NUM_RANKS, dtype=np.uint64)))
-assert SUITS_ONE == int(sum((2**CARD_COUNT_BITS) ** np.arange(NUM_SUITS, dtype=np.uint64)))
+assert RANKS_ONE == sum((2**CARD_COUNT_BITS) ** np.arange(NUM_RANKS, dtype=np.uint64))
+assert SUITS_ONE == sum((2**CARD_COUNT_BITS) ** np.arange(NUM_SUITS, dtype=np.uint64))
 
 
 # %%
@@ -1125,7 +1126,7 @@ def simulate_poker_hands(
   if verbose:
     print('#  Probabilities:')
   sigmas = []
-  for outcome, result_prob in zip(Outcome, results):
+  for outcome, result_prob in zip(Outcome, results, strict=True):
     reference_prob = outcome.reference_count / comb(DECK_SIZE, HAND_SIZE)
     error = result_prob - reference_prob
     estimate_sdv = (reference_prob * (1 - reference_prob) / num_hands) ** 0.5
@@ -1160,7 +1161,7 @@ compare_simulations(base_num_hands=10**7)
 # Hands/s: 135k, 44m, 470m, 16g, 135m, 890m, 57g, 120g.
 
 # %%
-if 1:
+if 1:  # noqa: SIM102
   if cuda.is_available():
     simulate_poker_hands(10**12, 'bitcount_gpu_cuda', simulate_hands_bitcount_gpu_cuda)
 
@@ -1169,7 +1170,7 @@ if 1:
 #      0.37σ  -0.78σ   1.09σ  -0.53σ  -0.53σ  -0.72σ  -1.61σ  -0.95σ  -0.91σ   1.91σ
 
 # %%
-if 1:
+if 1:  # noqa: SIM102
   if cuda.is_available():
     simulate_poker_hands(10**12, 'deckmask_gpu_cuda', simulate_hands_deckmask_gpu_cuda)
 
