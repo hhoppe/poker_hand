@@ -37,7 +37,7 @@ disable = [
 reports = false
 score = false
 recursive = true
-ignore-paths = [".*ipynb_checkpoints", "^.pytype", ".*/.pytype", "Other"]
+ignore-paths = [".*ipynb_checkpoints", "Other"]
 
 [tool.pylint.basic]
 good-names-rgxs = "^[a-z][a-z0-9]?|[A-Z]([A-Z_]*[A-Z])?$"
@@ -53,11 +53,6 @@ project-excludes = ["*.ipynb", "Other"]
 
 [tool.pyrefly.errors]
 redundant-condition = false
-
-[tool.pytype]
-keep_going = true
-inputs = ["."]
-exclude = ["Other"]
 
 [tool.ruff]
 extend-exclude = ["*.ipynb", "Other"]
