@@ -181,6 +181,7 @@ from collections.abc import Callable
 from math import comb
 from typing import Any, TypeAlias
 
+import hhoppe_tools as hh
 import numba
 import numba.cuda.random
 import numpy as np
@@ -188,6 +189,9 @@ import numpy.typing
 from numba import cuda
 
 import random32  # Replacement for https://github.com/numba/numba/blob/main/numba/cuda/random.py
+
+# %%
+hh.patch_numba_cuda_for_python314()
 
 # %%
 # mypy: disable-error-code="no-any-return, untyped-decorator"
